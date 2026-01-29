@@ -1,22 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import './Navigation.css';
 
 function Navigation({ user, onLogout }) {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   const handleLogout = async () => {
-    if (!window.confirm('Are you sure you want to logout?')) return;
-
     try {
       await authService.logout();
+      showSuccess('Logout successful!');
       onLogout();
       navigate('/login');
     } catch (err) {
       console.error('Logout failed:', err);
+      showError('Logout failed. Please try again.');
     }
   };
 

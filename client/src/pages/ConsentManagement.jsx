@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { consentService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import './ConsentManagement.css';
 
 function ConsentManagement() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [consentHistory, setConsentHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     fetchData();
@@ -16,7 +16,6 @@ function ConsentManagement() {
 
   const fetchData = async () => {
     setLoading(true);
-    setError('');
     try {
       console.log('Fetching consent data...');
       const [pendingRes, historyRes] = await Promise.all([
@@ -30,7 +29,7 @@ function ConsentManagement() {
     } catch (err) {
       console.error('Fetch consent data error:', err);
       console.error('Error response:', err.response?.data);
-      setError(err.response?.data?.message || err.message || 'Failed to fetch consent data');
+      showError(err.response?.data?.message || err.message || 'Failed to fetch consent data');
     } finally {
       setLoading(false);
     }
@@ -39,22 +38,20 @@ function ConsentManagement() {
   const handleRespondToRequest = async (consentId, action) => {
     try {
       await consentService.respondToRequest(consentId, action);
-      setSuccess(`Consent ${action.toLowerCase()}!`);
+      showSuccess(`Consent ${action.toLowerCase()}!`);
       fetchData();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to respond to request');
+      showError(err.response?.data?.message || 'Failed to respond to request');
     }
   };
 
   const handleRevokeConsent = async (consentId) => {
-    if (!window.confirm('Are you sure you want to revoke this consent?')) return;
-
     try {
       await consentService.revokeConsent(consentId);
-      setSuccess('Consent revoked successfully!');
+      showSuccess('Consent revoked successfully!');
       fetchData();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to revoke consent');
+      showError(err.response?.data?.message || 'Failed to revoke consent');
     }
   };
 
@@ -80,9 +77,6 @@ function ConsentManagement() {
           Consent History
         </button>
       </div>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
 
       {activeTab === 'pending' && (
         <div className="tab-content">

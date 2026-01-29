@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { accessService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import './AccessRequests.css';
 
 function AccessRequests({ user }) {
   const [patientId, setPatientId] = useState('');
   const [dataScope, setDataScope] = useState(['medical_history', 'prescriptions', 'allergies', 'current_medications', 'blood_group']);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const { showSuccess, showError } = useToast();
 
   const handleDataScopeChange = (item) => {
     if (dataScope.includes(item)) {
@@ -21,35 +21,28 @@ function AccessRequests({ user }) {
     e.preventDefault();
 
     if (!patientId.trim()) {
-      setError('Please enter a valid patient ID');
+      showError('Please enter a valid patient ID');
       return;
     }
 
     if (dataScope.length === 0) {
-      setError('Please select at least one data type');
+      showError('Please select at least one data type');
       return;
     }
 
     setSubmitting(true);
-    setError('');
-    setSuccess('');
 
     try {
       console.log('Sending access request:', { patientId, providerId: user.id, dataScope });
       const response = await accessService.createAccessRequest(patientId, user.id, dataScope);
       console.log('Access request response:', response.data);
-      setSuccess('Access request sent to patient successfully!');
+      showSuccess('Access request sent to patient successfully!');
       setPatientId('');
       setDataScope(['medical_history', 'prescriptions', 'allergies', 'current_medications', 'blood_group']);
-
-
-      setTimeout(() => {
-        setSuccess('');
-      }, 3000);
     } catch (err) {
       console.error('Access request error:', err);
       console.error('Error response:', err.response?.data);
-      setError(err.response?.data?.message || err.message || 'Failed to send access request');
+      showError(err.response?.data?.message || err.message || 'Failed to send access request');
     } finally {
       setSubmitting(false);
     }
@@ -59,9 +52,6 @@ function AccessRequests({ user }) {
     <div className="access-requests">
       <h1>Create Access Request</h1>
       <p className="subtitle">Request access to specific patient medical data</p>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
 
       <div className="request-form-container">
         <div className="card">

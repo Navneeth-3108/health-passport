@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { auditService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import './AccessLogs.css';
 
 function AccessLogs() {
   const [accessLogs, setAccessLogs] = useState([]);
   const [emergencyLogs, setEmergencyLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('access');
+  const { showError } = useToast();
 
   useEffect(() => {
     fetchLogs();
@@ -15,7 +16,6 @@ function AccessLogs() {
 
   const fetchLogs = async () => {
     setLoading(true);
-    setError('');
     try {
       console.log('Fetching access logs...');
       const [accessRes, emergencyRes] = await Promise.all([
@@ -29,7 +29,7 @@ function AccessLogs() {
     } catch (err) {
       console.error('Fetch access logs error:', err);
       console.error('Error response:', err.response?.data);
-      setError(err.response?.data?.message || err.message || 'Failed to fetch access logs');
+      showError(err.response?.data?.message || err.message || 'Failed to fetch access logs');
     } finally {
       setLoading(false);
     }
@@ -58,8 +58,6 @@ function AccessLogs() {
           Emergency Access ({emergencyLogs.length})
         </button>
       </div>
-
-      {error && <div className="alert alert-danger">{error}</div>}
 
       {activeTab === 'access' && (
         <div className="tab-content">

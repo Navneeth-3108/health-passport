@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { patientService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import './PatientProfile.css';
 
 function PatientProfile() {
@@ -15,9 +16,8 @@ function PatientProfile() {
     current_medications: false
   });
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('emergency');
+  const { showSuccess, showError } = useToast();
 
   const handleEmergencyChange = (field, value) => {
     setEmergency(prev => ({
@@ -53,13 +53,11 @@ function PatientProfile() {
 
   const handleSaveEmergency = async () => {
     setLoading(true);
-    setError('');
-    setSuccess('');
     try {
       await patientService.updateEmergency(emergency);
-      setSuccess('Emergency information saved successfully!');
+      showSuccess('Emergency information saved successfully!');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save emergency information');
+      showError(err.response?.data?.message || 'Failed to save emergency information');
     } finally {
       setLoading(false);
     }
@@ -67,13 +65,11 @@ function PatientProfile() {
 
   const handleSavePreferences = async () => {
     setLoading(true);
-    setError('');
-    setSuccess('');
     try {
       await patientService.updateConsent(preferences);
-      setSuccess('Data sharing preferences saved successfully!');
+      showSuccess('Data sharing preferences saved successfully!');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save preferences');
+      showError(err.response?.data?.message || 'Failed to save preferences');
     } finally {
       setLoading(false);
     }
@@ -97,9 +93,6 @@ function PatientProfile() {
           Data Sharing Preferences
         </button>
       </div>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
 
       {activeTab === 'emergency' && (
         <div className="tab-content">

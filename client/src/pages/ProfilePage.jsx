@@ -1,22 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import './ProfilePage.css';
 
 function ProfilePage({ user }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { showSuccess, showError } = useToast();
 
   const handleLogout = async () => {
-    if (!window.confirm('Are you sure you want to logout?')) return;
-
     setLoading(true);
     try {
       await authService.logout();
+      showSuccess('Logout successful!');
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to logout');
+      showError(err.response?.data?.message || 'Failed to logout');
       setLoading(false);
     }
   };
@@ -41,8 +41,6 @@ function ProfilePage({ user }) {
             </p>
           </div>
         </div>
-
-        {error && <div className="alert alert-danger">{error}</div>}
 
         <div className="profile-content">
           <div className="card">

@@ -1,23 +1,22 @@
 import { useState, useRef } from 'react';
 import jsQR from 'jsqr';
 import { accessService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import './QRScanner.css';
 
 function QRScanner({ user }) {
   const [scannedData, setScannedData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [isEmergency, setIsEmergency] = useState(false);
   const emergencyStateAtScanRef = useRef(false);
   const fileInputRef = useRef(null);
+  const { showSuccess, showError } = useToast();
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setLoading(true);
-    setError('');
 
     try {
       const img = new Image();
@@ -35,30 +34,28 @@ function QRScanner({ user }) {
         if (qrCode) {
           await handleScan(qrCode.data);
         } else {
-          setError('No QR code detected in the image. Please try another image or enter the code manually.');
+          showError('No QR code detected in the image. Please try another image or enter the code manually.');
         }
       };
       img.onerror = () => {
         setLoading(false);
-        setError('Failed to load the image. Please try another file.');
+        showError('Failed to load the image. Please try another file.');
       };
       img.src = URL.createObjectURL(file);
     } catch (err) {
       setLoading(false);
-      setError('Error processing the image. Please try again.');
+      showError('Error processing the image. Please try again.');
       console.error('Image processing error:', err);
     }
   };
 
   const handleScan = async (qrCodeId) => {
     if (!qrCodeId || !qrCodeId.trim()) {
-      setError('Please provide a valid QR code ID');
+      showError('Please provide a valid QR code ID');
       return;
     }
 
     setLoading(true);
-    setError('');
-    setSuccess('');
 
     emergencyStateAtScanRef.current = isEmergency;
 
@@ -67,14 +64,14 @@ function QRScanner({ user }) {
       const response = await accessService.scanQR(qrCodeId.trim(), user.id, isEmergency);
       console.log('Scan response:', response.data);
       setScannedData(response.data);
-      setSuccess(
+      showSuccess(
         isEmergency
           ? 'Emergency access granted to patient data'
           : 'Patient QR code scanned successfully'
       );
     } catch (err) {
       console.error('Scan error:', err);
-      setError(err.response?.data?.message || 'Failed to scan QR code');
+      showError(err.response?.data?.message || 'Failed to scan QR code');
     } finally {
       setLoading(false);
     }
@@ -90,9 +87,6 @@ function QRScanner({ user }) {
   return (
     <div className="qr-scanner">
       <h1>Scan Patient QR Code</h1>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
 
       <div className="scanner-container">
         <div className="card">

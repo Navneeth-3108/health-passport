@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
@@ -8,6 +8,8 @@ import PatientDashboard from './pages/PatientDashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
 import ProfilePage from './pages/ProfilePage';
 import Navigation from './components/Navigation';
+import { ToastProvider, useToast } from './context/ToastContext';
+import ToastContainer from './components/ToastContainer';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -15,25 +17,37 @@ function AppContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  const loginToastShownRef = useRef(false);
   const location = useLocation();
+  const { showSuccess } = useToast();
 
   useEffect(() => {
     checkAuth();
   }, []);
 
   useEffect(() => {
-    if (location.search.includes('auth=success')) {
+    if (location.search.includes('auth=success') && !loginToastShownRef.current) {
       setAuthChecked(false);
-      setTimeout(() => checkAuth(), 500);
+      setTimeout(() => {
+        checkAuth(true);
+      }, 500);
     }
   }, [location.search]);
 
-  const checkAuth = async () => {
+  const checkAuth = async (isLoginSuccess = false) => {
     try {
       const response = await axios.get(`${API_URL}/auth/profile`, {
         withCredentials: true,
       });
-      setUser(response.data);
+      const userData = response.data;
+      
+      // Show login success toast when auth=success parameter is present
+      if (isLoginSuccess && userData && !loginToastShownRef.current) {
+        showSuccess('Login successful!');
+        loginToastShownRef.current = true;
+      }
+      
+      setUser(userData);
       setAuthChecked(true);
     } catch (error) {
       setUser(null);
@@ -58,6 +72,7 @@ function AppContent() {
   return (
     <>
       {user && <Navigation user={user} onLogout={handleLogout} />}
+      <ToastContainer />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route
@@ -86,7 +101,9 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </BrowserRouter>
   );
 }

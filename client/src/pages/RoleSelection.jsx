@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import './RoleSelection.css';
 
 function RoleSelection({ user, updateUser }) {
@@ -8,22 +9,21 @@ function RoleSelection({ user, updateUser }) {
   const [selectedRole, setSelectedRole] = useState(null);
   const [organization, setOrganization] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { showError } = useToast();
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
-    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedRole) {
-      setError('Please select a role');
+      showError('Please select a role');
       return;
     }
 
     if (selectedRole === 'PROVIDER' && !organization.trim()) {
-      setError('Organization is required for providers');
+      showError('Organization is required for providers');
       return;
     }
 
@@ -44,7 +44,7 @@ function RoleSelection({ user, updateUser }) {
       const errorMsg = err.response?.data?.errors
         ? err.response.data.errors.map(e => e.msg).join(', ')
         : err.response?.data?.message || 'Failed to assign role';
-      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -55,8 +55,6 @@ function RoleSelection({ user, updateUser }) {
       <div className="role-box">
         <h1>Select Your Role</h1>
         <p className="role-subtitle">Choose how you'll use Health Passport</p>
-
-        {error && <div className="alert alert-danger">{error}</div>}
 
         <div className="role-cards">
           <div

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { patientService } from '../services/api';
 import { QRCodeSVG } from 'qrcode.react';
+import { useToast } from '../context/ToastContext';
 import './PatientHome.css';
 
 function PatientHome({ user }) {
   const [qrCode, setQrCode] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { showError } = useToast();
 
   useEffect(() => {
     fetchQRCode();
@@ -17,7 +18,7 @@ function PatientHome({ user }) {
       const response = await patientService.generateQR();
       setQrCode(response.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to generate QR code');
+      showError(err.response?.data?.message || 'Failed to generate QR code');
     } finally {
       setLoading(false);
     }
@@ -57,8 +58,6 @@ function PatientHome({ user }) {
         <div className="card">
           <h2>Your QR Code</h2>
           <p>Share this QR code with healthcare providers to allow them to request access to your medical records.</p>
-
-          {error && <div className="alert alert-danger">{error}</div>}
 
           {loading ? (
             <div className="loading-spinner">Generating QR Code...</div>
