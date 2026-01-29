@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const consentSchema = new mongoose.Schema(
   {
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: "Patient", required: true },
-    providerId: { type: mongoose.Schema.Types.ObjectId, ref: "Patient", required: true },
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    providerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     dataScope: {
       type: [String],
       default: ["medical_history", "prescriptions", "allergies", "current_medications", "blood_group"],

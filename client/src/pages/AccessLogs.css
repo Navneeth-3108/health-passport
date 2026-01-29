@@ -34,12 +34,12 @@
 }
 
 .tab-btn:hover {
-  color: #667eea;
+  color: #10b981;
 }
 
 .tab-btn.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: #10b981;
+  border-bottom-color: #10b981;
 }
 
 .tab-content {
@@ -64,7 +64,7 @@
 }
 
 .log-card {
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #10b981;
   transition: all 0.3s ease;
 }
 
@@ -145,7 +145,7 @@
 }
 
 .data-tag {
-  background: #667eea;
+  background: #10b981;
   color: white;
   padding: 4px 12px;
   border-radius: 16px;
@@ -172,7 +172,7 @@
 .loading {
   text-align: center;
   padding: 40px 20px;
-  color: #667eea;
+  color: #10b981;
   font-weight: 500;
 }
 

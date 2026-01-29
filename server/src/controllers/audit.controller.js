@@ -1,7 +1,6 @@
 import AccessLog from "../models/AccessLog.js";
-import Provider from "../models/Provider.js";
 import Consent from "../models/Consent.js";
-import Patient from "../models/Patient.js";
+import User from "../models/User.js";
 
 export const getPatientAccessLogs = async (req, res) => {
   try {

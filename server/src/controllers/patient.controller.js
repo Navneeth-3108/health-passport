@@ -1,4 +1,4 @@
-import Patient from "../models/Patient.js";
+import User from "../models/User.js";
 import { nanoid } from "nanoid";
 
 export const generateQR = (req, res) => {

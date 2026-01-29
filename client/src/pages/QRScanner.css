@@ -29,7 +29,7 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: #10b981;
 }
 
 .checkbox-label {
@@ -55,7 +55,7 @@
 }
 
 .upload-area {
-  border: 2px dashed #667eea;
+  border: 2px dashed #10b981;
   border-radius: 8px;
   padding: 40px 20px;
   text-align: center;
@@ -65,7 +65,7 @@
 
 .upload-area:hover {
   background-color: #f8f9fa;
-  border-color: #5568d3;
+  border-color: #059669;
 }
 
 .upload-icon {
@@ -75,7 +75,7 @@
 
 .upload-area p {
   margin: 10px 0;
-  color: #667eea;
+  color: #10b981;
   font-weight: 500;
 }
 
@@ -180,7 +180,7 @@
   margin: 20px 0;
   padding: 15px;
   background: white;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid #10b981;
   border-radius: 4px;
 }
 

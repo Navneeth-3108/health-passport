@@ -32,7 +32,7 @@
 
 .patient-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #3498db;
+  border-color: #10b981;
 }
 
 .patient-header {
@@ -79,13 +79,13 @@
   border: none;
   font-size: 1.2rem;
   cursor: pointer;
-  color: #3498db;
+  color: #10b981;
   padding: 0.5rem;
   transition: color 0.2s;
 }
 
 .expand-btn:hover {
-  color: #2980b9;
+  color: #059669;
 }
 
 .patient-details {
@@ -124,7 +124,7 @@
   margin-bottom: 1rem;
   padding: 0.75rem;
   background: #f8f9fa;
-  border-left: 3px solid #3498db;
+  border-left: 3px solid #10b981;
   border-radius: 4px;
 }
 
@@ -179,8 +179,8 @@
 }
 
 .badge-info {
-  background: #d6eaf8;
-  color: #3498db;
+  background: #d1fae5;
+  color: #065f46;
 }
 
 .empty-state {

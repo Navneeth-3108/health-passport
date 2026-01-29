@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const patientSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -31,6 +31,6 @@ const patientSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Patient = mongoose.model("Patient", patientSchema);
+const User = mongoose.model("User", userSchema);
 
-export default Patient;
+export default User;

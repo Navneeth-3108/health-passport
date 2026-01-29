@@ -1,4 +1,4 @@
-import Patient from "../models/Patient.js";
+import User from "../models/User.js";
 
 export const googleAuthSuccess = async (req, res) => {
   if (!req.user) {
@@ -20,7 +20,7 @@ export const assignRole = async (req, res) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    const patient = await Patient.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       req.user._id,
       {
         role,
@@ -29,23 +29,23 @@ export const assignRole = async (req, res) => {
       { new: true }
     );
 
-    if (!patient) {
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
 
-    req.user.role = patient.role;
-    req.user.organization = patient.organization;
+    req.user.role = user.role;
+    req.user.organization = user.organization;
 
     res.status(200).json({
       message: "Role assigned successfully",
-      id: patient._id,
-      name: patient.name,
-      email: patient.email,
-      picture: patient.picture,
-      role: patient.role,
-      organization: patient.organization,
-      qr_code_id: patient.qr_code_id,
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      picture: user.picture,
+      role: user.role,
+      organization: user.organization,
+      qr_code_id: user.qr_code_id,
     });
   } catch (err) {
     console.error("Role assignment error:", err);

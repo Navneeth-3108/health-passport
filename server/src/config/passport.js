@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import Patient from "../models/Patient.js";
+import User from "../models/User.js";
 import { nanoid } from "nanoid";
 
 const generateQRId = () => {
@@ -17,10 +17,10 @@ export const initPassport = () => {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          let patient = await Patient.findOne({ googleId: profile.id });
+          let user = await User.findOne({ googleId: profile.id });
 
-          if (!patient) {
-            patient = await Patient.create({
+          if (!user) {
+            user = await User.create({
               name: profile.displayName,
               googleId: profile.id,
               email: profile.emails?.[0]?.value,
@@ -39,13 +39,13 @@ export const initPassport = () => {
               qr_code_id: generateQRId(),
             });
           } else {
-            if (profile.photos?.[0]?.value && patient.picture !== profile.photos[0].value) {
-              patient.picture = profile.photos[0].value;
-              await patient.save();
+            if (profile.photos?.[0]?.value && user.picture !== profile.photos[0].value) {
+              user.picture = profile.photos[0].value;
+              await user.save();
             }
           }
 
-          return done(null, patient);
+          return done(null, user);
         } catch (err) {
           return done(err, null);
         }
@@ -53,14 +53,14 @@ export const initPassport = () => {
     )
   );
 
-  passport.serializeUser((patient, done) => {
-    done(null, patient.id);
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
   });
 
   passport.deserializeUser(async (id, done) => {
     try {
-      const patient = await Patient.findById(id);
-      done(null, patient || false);
+      const user = await User.findById(id);
+      done(null, user || false);
     } catch (err) {
       done(err, null);
     }

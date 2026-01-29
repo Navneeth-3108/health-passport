@@ -1,6 +1,5 @@
 import Consent from "../models/Consent.js";
-import Patient from "../models/Patient.js";
-import Provider from "../models/Provider.js";
+import User from "../models/User.js";
 
 export const viewPendingRequests = async (req, res) => {
   try {

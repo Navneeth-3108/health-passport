@@ -1,4 +1,4 @@
-import Patient from "../models/Patient.js";
+import User from "../models/User.js";
 import AccessLog from "../models/AccessLog.js";
 import Consent from "../models/Consent.js";
 import { validateQRToken } from "../services/qr.service.js";
@@ -17,7 +17,7 @@ export const scanQR = async (req, res) => {
       return res.status(400).json({ message: "Requester information is required" });
     }
 
-    const patient = await Patient.findOne({ qr_code_id });
+    const patient = await User.findOne({ qr_code_id });
     if (!patient) {
       console.log('Patient not found for QR:', qr_code_id);
       return res.status(404).json({ message: "Patient not found with this QR code" });
@@ -113,18 +113,18 @@ export const createAccessRequest = async (req, res) => {
 
     let patient;
     try {
-      patient = await Patient.findById(patientId);
+      patient = await User.findById(patientId);
     } catch (e) {
       console.log('Invalid MongoDB ID format, trying email/QR:', patientId);
     }
 
     if (!patient) {
-      patient = await Patient.findOne({ email: patientId });
+      patient = await User.findOne({ email: patientId });
       console.log('Searched by email:', patientId, patient ? 'found' : 'not found');
     }
 
     if (!patient) {
-      patient = await Patient.findOne({ qr_code_id: patientId });
+      patient = await User.findOne({ qr_code_id: patientId });
       console.log('Searched by QR code:', patientId, patient ? 'found' : 'not found');
     }
 
@@ -138,7 +138,7 @@ export const createAccessRequest = async (req, res) => {
 
     let provider;
     try {
-      provider = await Patient.findById(providerId);
+      provider = await User.findById(providerId);
     } catch (e) {
       console.log('Invalid provider ID:', providerId, e.message);
       return res.status(400).json({ message: "Invalid provider ID format" });

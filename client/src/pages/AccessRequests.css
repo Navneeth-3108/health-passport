@@ -30,8 +30,8 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+  border-color: #10b981;
+  box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
 }
 
 .form-group small {
@@ -67,7 +67,7 @@
 
 .checkbox-item:hover {
   background-color: #f8f9fa;
-  border-color: #667eea;
+  border-color: #10b981;
 }
 
 .checkbox-item input {
@@ -75,7 +75,7 @@
   height: 18px;
   margin-top: 2px;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: #10b981;
 }
 
 .checkbox-label {
@@ -97,7 +97,7 @@
 
 .info-card {
   background: #f8f9fa;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #10b981;
 }
 
 .info-card h3 {

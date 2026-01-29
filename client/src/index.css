@@ -5,13 +5,13 @@
 }
 
 :root {
-  /* Enhanced Color Palette */
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --primary-color: #667eea;
-  --primary-dark: #5568d3;
-  --primary-light: #8796f0;
-  --secondary-color: #764ba2;
-  --accent-color: #f093fb;
+  /* Enhanced Color Palette - Hospital Green Theme */
+  --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --primary-color: #10b981;
+  --primary-dark: #059669;
+  --primary-light: #34d399;
+  --secondary-color: #0d9488;
+  --accent-color: #6ee7b7;
   
   /* Neutral Colors */
   --text-primary: #1a1a2e;
@@ -38,7 +38,7 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 10px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 40px -4px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.08);
-  --shadow-color: 0 4px 20px rgba(102, 126, 234, 0.15);
+  --shadow-color: 0 4px 20px rgba(16, 185, 129, 0.15);
   
   /* Typography */
   --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
