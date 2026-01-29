@@ -1,0 +1,431 @@
+.patient-profile {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.patient-profile h1 {
+  margin-bottom: 30px;
+  color: #333;
+  font-size: 2rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-btn {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #666;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  color: #667eea;
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+.tab-btn.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.patient-profile .card {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.patient-profile .card h2 {
+  margin-bottom: 12px;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.help-text {
+  color: #666;
+  margin-top: 0;
+  margin-bottom: 25px;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.patient-profile .form-group {
+  margin-bottom: 25px;
+}
+
+.patient-profile .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.list-input {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.list-input input.form-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 11px 15px !important;
+  font-size: 1rem !important;
+  border: 1.5px solid #ddd !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease;
+  height: 44px !important;
+  line-height: 1.5 !important;
+  box-sizing: border-box !important;
+  width: auto !important;
+}
+
+.list-input input.form-input:focus {
+  outline: none;
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+.list-input button.button {
+  padding: 11px 20px !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.95rem !important;
+  min-width: 70px;
+  max-width: 90px;
+  height: 44px !important;
+  border-radius: 6px !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box !important;
+}
+
+.items-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+  min-height: 20px;
+}
+
+.items-list:empty::after {
+  content: 'No items added yet';
+  color: #999;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.item-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+  transition: all 0.2s ease;
+}
+
+.item-tag:hover {
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  transform: translateY(-1px);
+}
+
+.remove-item {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.remove-item:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.patient-profile .form-input,
+.patient-profile select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+.patient-profile .form-input:focus,
+.patient-profile select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.patient-profile .button-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  margin-top: 10px;
+}
+
+.patient-profile .button-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.patient-profile .button-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.patient-profile .button-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.patient-profile .button-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.patient-profile .button-secondary:hover {
+  background-color: #5a6268;
+  border-color: #5a6268;
+  color: white;
+}
+
+.preference-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.preference-item:hover {
+  background-color: #f8f9fa;
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.preference-info {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.preference-info h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.preference-info p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.checkbox input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkmark {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  background-color: #e0e0e0;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.checkbox input:checked + .checkmark {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.checkbox input:checked + .checkmark:after {
+  content: '';
+  position: absolute;
+  display: block;
+  left: 8px;
+  top: 4px;
+  width: 7px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox:hover .checkmark {
+  border-color: #667eea;
+  box-shadow: 0 0 8px rgba(102, 126, 234, 0.2);
+  background-color: #f0f0f0;
+}
+
+.checkbox input:checked:hover + .checkmark {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.patient-profile .alert {
+  padding: 15px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+@media (max-width: 768px) {
+  .patient-profile {
+    padding: 15px;
+  }
+
+  .patient-profile h1 {
+    font-size: 1.5rem;
+  }
+
+  .patient-profile .card {
+    padding: 20px;
+  }
+
+  .preference-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .preference-info {
+    margin-right: 0;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn {
+    white-space: nowrap;
+    min-width: fit-content;
+  }
+
+  .list-input {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .list-input input.form-input {
+    min-width: 100% !important;
+  }
+
+  .list-input button.button {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .patient-profile h1 {
+    font-size: 1.25rem;
+  }
+
+  .patient-profile .card h2 {
+    font-size: 1.25rem;
+  }
+
+  .item-tag {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+
+  .preference-item {
+    padding: 15px;
+  }
+
+  .preference-info h3 {
+    font-size: 1rem;
+  }
+}

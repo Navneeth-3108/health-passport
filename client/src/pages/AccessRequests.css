@@ -1,0 +1,136 @@
+.access-requests {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.access-requests h1 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 1rem;
+}
+
+.request-form-container {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 20px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+}
+
+.form-group small {
+  display: block;
+  color: #999;
+  margin-top: 5px;
+  font-size: 0.85rem;
+}
+
+.help-text {
+  margin: 0 0 15px 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.data-scope-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.checkbox-item:hover {
+  background-color: #f8f9fa;
+  border-color: #667eea;
+}
+
+.checkbox-item input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.checkbox-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+}
+
+.checkbox-desc {
+  display: block;
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 4px;
+}
+
+.button {
+  width: 100%;
+}
+
+.info-card {
+  background: #f8f9fa;
+  border-left: 4px solid #667eea;
+}
+
+.info-card h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.info-card p {
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 10px 0;
+}
+
+.process-steps {
+  color: #666;
+  margin: 15px 0;
+  padding-left: 20px;
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.process-steps li {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .request-form-container {
+    grid-template-columns: 1fr;
+  }
+
+  .info-card {
+    order: 2;
+  }
+}
