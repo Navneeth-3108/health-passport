@@ -1,6 +1,5 @@
 import AccessLog from "../models/AccessLog.js";
 import Consent from "../models/Consent.js";
-import User from "../models/User.js";
 
 export const getPatientAccessLogs = async (req, res) => {
   try {
@@ -9,7 +8,7 @@ export const getPatientAccessLogs = async (req, res) => {
       .sort({ createdAt: -1 });
 
     res.status(200).json({
-      accessLogs: logs,
+      accessLogs: logs
     });
   } catch (err) {
     console.error(err);
@@ -57,7 +56,7 @@ export const getConsentedPatients = async (req, res) => {
 
 
         if (consent.dataScope.includes('medical_history')) {
-          data.medical_history = patient.medical_history || 'No medical history recorded';
+          data.medical_history = patient.medical_history || 'Medical history to be fetched';
         }
         if (consent.dataScope.includes('prescriptions')) {
           data.prescriptions = patient.prescriptions && patient.prescriptions.length > 0 ? patient.prescriptions : null;
@@ -99,7 +98,7 @@ export const getProviderAccessLogs = async (req, res) => {
       .sort({ createdAt: -1 });
 
     res.status(200).json({
-      providerAccessLogs: logs,
+      providerAccessLogs: logs
     });
   } catch (err) {
     console.error('Failed to fetch provider access logs:', err);

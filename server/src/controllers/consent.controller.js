@@ -1,5 +1,4 @@
 import Consent from "../models/Consent.js";
-import User from "../models/User.js";
 
 export const viewPendingRequests = async (req, res) => {
   try {

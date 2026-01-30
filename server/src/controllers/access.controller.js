@@ -31,23 +31,7 @@ export const scanQR = async (req, res) => {
       return res.status(400).json({ message: "Invalid QR code" });
     }
 
-
     let consentRecord = null;
-    if (!emergency) {
-      consentRecord = await Consent.findOne({
-        patientId: patient._id,
-        providerId: requestedBy,
-        status: "GRANTED",
-        $or: [
-          { expiry: null },
-          { expiry: { $gt: new Date() } }
-        ]
-      });
-
-      if (!consentRecord) {
-        console.log('No consent found, but allowing access for demo purposes');
-      }
-    }
 
     const data = {
       name: patient.name,
@@ -56,7 +40,7 @@ export const scanQR = async (req, res) => {
 
 
     if (emergency) {
-      data.medical_history = patient.medical_history || 'No medical history recorded';
+      data.medical_history = patient.medical_history || 'Request Emergency Access';
       data.prescriptions = patient.prescriptions || [];
       data.allergies = patient.emergency?.allergies || [];
       data.blood_group = patient.emergency?.blood_group || 'Not specified';
@@ -65,7 +49,7 @@ export const scanQR = async (req, res) => {
       const dataScope = consentRecord ? consentRecord.dataScope : [];
       
       if (dataScope.includes('medical_history') || patient.consent.medical_history) {
-        data.medical_history = patient.medical_history || 'No medical history recorded';
+        data.medical_history = patient.medical_history || 'Request Emergency Access';
       }
       if (dataScope.includes('prescriptions') || patient.consent.prescriptions) {
         data.prescriptions = patient.prescriptions || [];
@@ -202,44 +186,5 @@ export const createAccessRequest = async (req, res) => {
       error: err.message,
       details: err.stack
     });
-  }
-};
-
-export const emergencyAccess = async (req, res) => {
-  try {
-    const { qr_code_id, requestedBy } = req.body;
-
-    if (!qr_code_id) {
-      return res.status(400).json({ message: "QR code ID is required" });
-    }
-
-    if (!requestedBy) {
-      return res.status(400).json({ message: "Requester information is required for emergency access" });
-    }
-
-    const patient = await Patient.findOne({ qr_code_id });
-    if (!patient) return res.status(404).json({ message: "Patient not found" });
-
-    const data = {
-      blood_group: patient.emergency.blood_group,
-      allergies: patient.emergency.allergies,
-      current_medications: patient.emergency.current_medications,
-    };
-
-    await AccessLog.create({
-      accessedBy: requestedBy,
-      patientId: patient._id,
-      dataAccessed: Object.keys(data),
-      emergency: true,
-    });
-
-    res.status(200).json({
-      patientId: patient._id,
-      data,
-      emergency: true,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to perform emergency access" });
   }
 };

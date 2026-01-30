@@ -2,8 +2,7 @@ import express from "express";
 import { body } from "express-validator";
 import {
   scanQR,
-  createAccessRequest,
-  emergencyAccess,
+  createAccessRequest
 } from "../controllers/access.controller.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
 import { handleEmergency } from "../middlewares/emergency.middleware.js";
@@ -40,8 +39,7 @@ router.post("/emergency",
     body("qr_code_id").notEmpty().withMessage("QR code ID is required"),
     body("requestedBy").isMongoId().withMessage("Valid requester ID is required")
   ],
-  validateRequest,
-  emergencyAccess
+  validateRequest
 );
 
 export default router;

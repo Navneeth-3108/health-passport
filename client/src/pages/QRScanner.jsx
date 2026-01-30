@@ -143,7 +143,7 @@ function QRScanner({ user }) {
             {scannedData.data.medical_history && (
               <div className="result-section">
                 <strong>Medical History:</strong>
-                <p>{scannedData.data.medical_history}</p>
+                <p className="no-data">{scannedData.data.medical_history}</p>
               </div>
             )}
             {scannedData.data.prescriptions && scannedData.data.prescriptions.length > 0 ? (
