@@ -1,64 +1,48 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import ToastContext from './ToastContextObject';
 
-const ToastContext = createContext();
-
-export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
-};
+let toastIdCounter = 0;
 
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
-
-  const showToast = useCallback((message, type = 'info', duration = 4000) => {
-    const id = Date.now() + Math.random();
-    const toast = { id, message, type, duration };
-    
-    setToasts(prev => [...prev, toast]);
-
-    // Auto-dismiss after duration
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, duration);
-
-    return id;
-  }, []);
+  const lastToastRef = useRef({ message: '', type: '', timestamp: 0 });
 
   const removeToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+    setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
   }, []);
 
-  const showSuccess = useCallback((message, duration) => {
-    return showToast(message, 'success', duration);
-  }, [showToast]);
+  const showToast = useCallback((message, type = 'info', duration = 4000) => {
+    const now = Date.now();
+    const isDuplicate =
+      lastToastRef.current.message === message &&
+      lastToastRef.current.type === type &&
+      now - lastToastRef.current.timestamp < 1200;
 
-  const showError = useCallback((message, duration) => {
-    return showToast(message, 'error', duration);
-  }, [showToast]);
+    if (isDuplicate) {
+      return;
+    }
 
-  const showInfo = useCallback((message, duration) => {
-    return showToast(message, 'info', duration);
-  }, [showToast]);
+    lastToastRef.current = { message, type, timestamp: now };
 
-  const showWarning = useCallback((message, duration) => {
-    return showToast(message, 'warning', duration);
-  }, [showToast]);
+    const id = ++toastIdCounter;
+    const newToast = { id, message, type, duration };
+    
+    setToasts((prevToasts) => [...prevToasts, newToast]);
 
-  const value = {
-    toasts,
-    showToast,
-    showSuccess,
-    showError,
-    showInfo,
-    showWarning,
-    removeToast
-  };
+    if (duration > 0) {
+      setTimeout(() => {
+        removeToast(id);
+      }, duration);
+    }
+  }, [removeToast]);
+
+  const showSuccess = useCallback((message, duration) => showToast(message, 'success', duration), [showToast]);
+  const showError = useCallback((message, duration) => showToast(message, 'error', duration), [showToast]);
+  const showInfo = useCallback((message, duration) => showToast(message, 'info', duration), [showToast]);
+  const showWarning = useCallback((message, duration) => showToast(message, 'warning', duration), [showToast]);
 
   return (
-    <ToastContext.Provider value={value}>
+    <ToastContext.Provider value={{ toasts, showToast, showSuccess, showError, showInfo, showWarning, removeToast }}>
       {children}
     </ToastContext.Provider>
   );

@@ -1,193 +1,156 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { consentService } from '../services/api';
-import { useToast } from '../context/ToastContext';
-import './ConsentManagement.css';
+import { useToast } from '../context/useToast';
+import { Check, X, ShieldAlert, FileText } from 'lucide-react';
 
-function ConsentManagement() {
-  const [pendingRequests, setPendingRequests] = useState([]);
-  const [consentHistory, setConsentHistory] = useState([]);
+const ConsentManagement = () => {
+  const [pending, setPending] = useState([]);
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending');
   const { showSuccess, showError } = useToast();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const getProviderName = (provider) => {
+    if (!provider) return 'Unknown Provider';
+    if (typeof provider === 'string') return provider;
+    return provider.name || provider.email || 'Unknown Provider';
+  };
 
-  const fetchData = async () => {
-    setLoading(true);
+  const formatDate = (value) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Unknown date';
+    return date.toLocaleDateString();
+  };
+
+  const loadData = useCallback(async () => {
     try {
-      console.log('Fetching consent data...');
-      const [pendingRes, historyRes] = await Promise.all([
+      setLoading(true);
+      const [pendingData, historyData] = await Promise.all([
         consentService.getPendingRequests(),
         consentService.getConsentHistory()
       ]);
-      console.log('Pending requests response:', pendingRes.data);
-      console.log('Consent history response:', historyRes.data);
-      setPendingRequests(pendingRes.data.pendingRequests || []);
-      setConsentHistory(historyRes.data.consentHistory || []);
+      setPending(pendingData.pendingRequests || []);
+      setHistory(historyData.consentHistory || []);
     } catch (err) {
-      console.error('Fetch consent data error:', err);
-      console.error('Error response:', err.response?.data);
-      showError(err.response?.data?.message || err.message || 'Failed to fetch consent data');
+      showError(err.response?.data?.message || 'Failed to load consent data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const handleRespondToRequest = async (consentId, action) => {
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleRespond = async (consentId, action) => {
     try {
       await consentService.respondToRequest(consentId, action);
-      showSuccess(`Consent ${action.toLowerCase()}!`);
-      fetchData();
+      const verb = action === 'GRANTED' ? 'granted' : 'denied';
+      showSuccess(`Request ${verb} successfully`);
+      loadData();
     } catch (err) {
       showError(err.response?.data?.message || 'Failed to respond to request');
     }
   };
 
-  const handleRevokeConsent = async (consentId) => {
+  const handleRevoke = async (consentId) => {
     try {
       await consentService.revokeConsent(consentId);
-      showSuccess('Consent revoked successfully!');
-      fetchData();
+      showSuccess('Consent revoked successfully');
+      loadData();
     } catch (err) {
       showError(err.response?.data?.message || 'Failed to revoke consent');
     }
   };
 
-  if (loading) {
-    return <div className="loading">Loading consent information...</div>;
-  }
+  if (loading) return <div className="flex-center" style={{ height: '300px' }}><div className="loader"></div></div>;
 
   return (
-    <div className="consent-management">
-      <h1>Consent Management</h1>
+    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '8px' }}>Consent Management</h1>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>Review provider requests and manage active data sharing.</p>
 
-      <div className="tabs">
-        <button
-          className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pending')}
-        >
-          Pending Requests ({pendingRequests.length})
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-          onClick={() => setActiveTab('history')}
-        >
-          Consent History
-        </button>
-      </div>
-
-      {activeTab === 'pending' && (
-        <div className="tab-content">
-          {pendingRequests.length === 0 ? (
-            <div className="card empty-state">
-              <p>No pending requests</p>
+      {/* Pending Requests */}
+      <h2 style={{ fontSize: '1.5rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <ShieldAlert className="text-warning" size={24} color="var(--warning)" />
+        Pending Requests
+        {pending.length > 0 && <span className="badge badge-warning" style={{ marginLeft: '8px' }}>{pending.length}</span>}
+      </h2>
+      
+      {pending.length === 0 ? (
+        <div className="glass-panel" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', marginBottom: '40px' }}>
+          No pending requests at this time.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '40px' }}>
+          {pending.map(req => (
+            <div key={req._id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{getProviderName(req.providerId)}</h3>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}>Requested scopes:</div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {req.dataScope?.map(scope => (
+                    <span key={scope} className="badge badge-info">{scope.replace('_', ' ')}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button className="btn btn-secondary" onClick={() => handleRespond(req._id, 'REVOKED')} style={{ color: 'var(--error)' }}>
+                  <X size={18} /> Deny
+                </button>
+                <button className="btn btn-primary" onClick={() => handleRespond(req._id, 'GRANTED')}>
+                  <Check size={18} /> Grant
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="requests-list">
-              {pendingRequests.map((request) => (
-                <div key={request._id} className="card request-card">
-                  <div className="request-header">
-                    <h3>{typeof request.providerId === 'object' ? request.providerId?.name : 'Unknown Provider'}</h3>
-                    <span className="badge badge-warning">PENDING</span>
+          ))}
+        </div>
+      )}
+
+      {/* Active & Historical Consents */}
+      <h2 style={{ fontSize: '1.5rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <FileText className="text-primary-accent" size={24} color="var(--primary-accent)" />
+        Consent History & Active Grants
+      </h2>
+
+      {history.length === 0 ? (
+        <div className="glass-panel" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+          No consent history found.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {history.map(item => (
+            <div key={item._id} className="glass-panel" style={{ padding: '20px', borderLeft: `4px solid ${item.status === 'GRANTED' ? 'var(--success)' : item.status === 'REVOKED' ? 'var(--warning)' : 'var(--error)'}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{getProviderName(item.providerId)}</h3>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                    Updated on: {formatDate(item.updatedAt || item.createdAt)}
                   </div>
-
-                  <div className="request-details">
-                    <p><strong>Organization:</strong> {typeof request.providerId === 'object' ? request.providerId?.organization : 'N/A'}</p>
-                    <p><strong>Requested Data:</strong></p>
-                    <div className="data-scope">
-                      {request.dataScope && request.dataScope.map((item) => (
-                        <span key={item} className="scope-tag">{item}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {request.expiry && (
-                    <p className="expiry">Expires: {new Date(request.expiry).toLocaleDateString()}</p>
-                  )}
-
-                  <div className="request-actions">
-                    <button
-                      className="button button-success"
-                      onClick={() => handleRespondToRequest(request._id, 'GRANTED')}
-                    >
-                      Grant Access
-                    </button>
-                    <button
-                      className="button button-danger"
-                      onClick={() => handleRespondToRequest(request._id, 'REVOKED')}
-                    >
-                      Deny
-                    </button>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {item.dataScope?.map(scope => (
+                      <span key={scope} className="badge" style={{ background: 'rgba(255,255,255,0.05)' }}>{scope.replace('_', ' ')}</span>
+                    ))}
                   </div>
                 </div>
-              ))}
+                <div>
+                  {item.status === 'GRANTED' ? (
+                    <button className="btn btn-danger" onClick={() => handleRevoke(item._id)} style={{ padding: '6px 16px', fontSize: '0.9rem' }}>
+                      Revoke Access
+                    </button>
+                  ) : (
+                    <span className={`badge ${item.status === 'REVOKED' ? 'badge-warning' : 'badge-error'}`}>
+                      {item.status}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       )}
 
-      {activeTab === 'history' && (
-        <div className="tab-content">
-          {consentHistory.length === 0 ? (
-            <div className="card empty-state">
-              <p>No consent history</p>
-            </div>
-          ) : (
-            <div className="history-table">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Provider</th>
-                    <th>Status</th>
-                    <th>Data Scope</th>
-                    <th>Granted Date</th>
-                    <th>Expires</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {consentHistory.map((consent) => (
-                    <tr key={consent._id}>
-                      <td>
-                        <strong>{typeof consent.providerId === 'object' ? consent.providerId?.name : 'Unknown'}</strong>
-                        <br />
-                        <small>{typeof consent.providerId === 'object' ? consent.providerId?.organization : 'N/A'}</small>
-                      </td>
-                      <td>
-                        <span className={`badge badge-${consent.status === 'GRANTED' ? 'success' : 'danger'}`}>
-                          {consent.status}
-                        </span>
-                      </td>
-                      <td>
-                        {consent.dataScope && consent.dataScope.join(', ')}
-                      </td>
-                      <td>{new Date(consent.createdAt).toLocaleDateString()}</td>
-                      <td>
-                        {consent.expiry ? new Date(consent.expiry).toLocaleDateString() : 'No expiry'}
-                      </td>
-                      <td>
-                        {consent.status === 'GRANTED' && (
-                          <button
-                            className="button button-danger"
-                            style={{ padding: '5px 10px', fontSize: '0.85rem' }}
-                            onClick={() => handleRevokeConsent(consent._id)}
-                          >
-                            Revoke
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
-}
+};
 
 export default ConsentManagement;

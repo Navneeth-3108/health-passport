@@ -1,120 +1,85 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/api';
-import { useToast } from '../context/ToastContext';
-import './ProfilePage.css';
+import { useMemo, useState } from 'react';
+import { Shield, Mail, Building, User as UserIcon } from 'lucide-react';
 
-function ProfilePage({ user }) {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const { showSuccess, showError } = useToast();
+const ProfilePage = ({ user }) => {
+  const [imageError, setImageError] = useState(false);
 
-  const handleLogout = async () => {
-    setLoading(true);
-    try {
-      await authService.logout();
-      showSuccess('Logout successful!');
-      navigate('/login');
-    } catch (err) {
-      showError(err.response?.data?.message || 'Failed to logout');
-      setLoading(false);
-    }
-  };
+  const profileImage = useMemo(() => {
+    if (!user?.picture) return null;
+    const normalized = user.picture.replace('http://', 'https://');
+    return normalized.includes('googleusercontent.com') && !normalized.includes('sz=')
+      ? `${normalized}${normalized.includes('?') ? '&' : '?'}sz=256`
+      : normalized;
+  }, [user]);
+
+  if (!user) return null;
 
   return (
-    <div className="profile-page">
-      <div className="profile-container">
-        <div className="profile-header">
-          <div className="profile-avatar">
-            {user.picture ? (
-              <img src={user.picture} alt={user.name} className="profile-avatar-img" />
+    <div className="container">
+      <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
+        <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '32px' }}>Your Profile</h1>
+        
+        <div className="glass-panel" style={{ padding: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '32px', paddingBottom: '32px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            {profileImage && !imageError ? (
+              <img
+                src={profileImage}
+                alt={user.name}
+                referrerPolicy="no-referrer"
+                onError={() => setImageError(true)}
+                style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid var(--primary-accent)', objectFit: 'cover' }}
+              />
             ) : (
-              user.name.charAt(0).toUpperCase()
+              <div className="flex-center" style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(124, 58, 237, 0.2)' }}>
+                <UserIcon size={40} color="var(--primary-accent)" />
+              </div>
             )}
-          </div>
-          <div className="profile-info">
-            <h1>{user.name}</h1>
-            <p className="profile-email">{user.email}</p>
-            <p className="profile-role">
-              <span className={`role-badge role-${user.role}`}>{user.role}</span>
-              {user.organization && <span className="org-badge">{user.organization}</span>}
-            </p>
-          </div>
-        </div>
-
-        <div className="profile-content">
-          <div className="card">
-            <h2>Account Information</h2>
-            <div className="info-grid">
-              <div className="info-item">
-                <label>Full Name</label>
-                <p>{user.name}</p>
-              </div>
-              <div className="info-item">
-                <label>Email Address</label>
-                <p>{user.email}</p>
-              </div>
-              <div className="info-item">
-                <label>User ID</label>
-                <p className="monospace">{user._id || user.id}</p>
-              </div>
-              <div className="info-item">
-                <label>Account Type</label>
-                <p>{user.role === 'PATIENT' ? 'Patient' : 'Healthcare Provider'}</p>
-              </div>
-              {user.organization && (
-                <div className="info-item">
-                  <label>Organization</label>
-                  <p>{user.organization}</p>
-                </div>
-              )}
-              <div className="info-item">
-                <label>Member Since</label>
-                <p>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Just now'}</p>
-              </div>
+            
+            <div>
+              <h2 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>{user.name}</h2>
+              <div className="badge badge-success" style={{ display: 'inline-block' }}>{user.role}</div>
             </div>
           </div>
 
-          <div className="card">
-            <h2>Account Settings</h2>
-            <div className="settings-group">
-              <div className="setting-item">
-                <div className="setting-info">
-                  <h3>Privacy</h3>
-                  <p>Manage your privacy preferences and data sharing settings</p>
-                </div>
-                <a href={user.role === 'PATIENT' ? '/patient/profile' : '#'} className="button button-secondary">
-                  Manage
-                </a>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+              <div className="flex-center" style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
+                <Mail size={20} color="var(--text-muted)" />
               </div>
-
-              <div className="setting-item">
-                <div className="setting-info">
-                  <h3>Two-Factor Authentication</h3>
-                  <p>Add extra security to your account</p>
-                </div>
-                <button className="button button-secondary" disabled>
-                  Coming Soon
-                </button>
+              <div>
+                <div className="form-label">Email Address</div>
+                <div style={{ fontSize: '1.1rem' }}>{user.email}</div>
               </div>
             </div>
-          </div>
 
-          <div className="card danger-zone">
-            <h2>Danger Zone</h2>
-            <p>Be careful with these actions as they cannot be undone.</p>
-            <button
-              className="button button-danger"
-              onClick={handleLogout}
-              disabled={loading}
-            >
-              {loading ? 'Logging Out...' : 'Logout'}
-            </button>
+            {user.role === 'PROVIDER' && user.organization && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                <div className="flex-center" style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
+                  <Building size={20} color="var(--text-muted)" />
+                </div>
+                <div>
+                  <div className="form-label">Organization</div>
+                  <div style={{ fontSize: '1.1rem' }}>{user.organization}</div>
+                </div>
+              </div>
+            )}
+
+            {user.role === 'PATIENT' && user.qr_code_id && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                <div className="flex-center" style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)' }}>
+                  <Shield size={20} color="var(--text-muted)" />
+                </div>
+                <div>
+                  <div className="form-label">Passport ID</div>
+                  <div style={{ fontSize: '1.1rem', fontFamily: 'monospace' }}>{user.qr_code_id}</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default ProfilePage;

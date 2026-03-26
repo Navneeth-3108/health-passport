@@ -5,15 +5,17 @@ import { validateQRToken } from "../services/qr.service.js";
 
 export const scanQR = async (req, res) => {
   try {
-    const { qr_code_id, requestedBy, emergency } = req.body;
+    const { qr_code_id, requestedBy } = req.body;
+    const emergency = req.body.emergency ?? req.isEmergency;
+    const requesterId = requestedBy || req.user?._id;
 
-    console.log('Scan request:', { qr_code_id, requestedBy, emergency });
+    console.log('Scan request:', { qr_code_id, requestedBy: requesterId, emergency });
 
     if (!qr_code_id) {
       return res.status(400).json({ message: "QR code ID is required" });
     }
 
-    if (!requestedBy) {
+    if (!requesterId) {
       return res.status(400).json({ message: "Requester information is required" });
     }
 
@@ -64,7 +66,7 @@ export const scanQR = async (req, res) => {
     }
 
     await AccessLog.create({
-      accessedBy: requestedBy,
+      accessedBy: requesterId,
       patientId: patient._id,
       dataAccessed: Object.keys(data),
       emergency: emergency || false,
@@ -87,10 +89,11 @@ export const scanQR = async (req, res) => {
 export const createAccessRequest = async (req, res) => {
   try {
     const { patientId, providerId, dataScope } = req.body;
+    const requesterProviderId = providerId || req.user?._id;
 
-    console.log('Create access request:', { patientId, providerId, dataScope });
+    console.log('Create access request:', { patientId, providerId: requesterProviderId, dataScope });
 
-    if (!patientId || !providerId) {
+    if (!patientId || !requesterProviderId) {
       return res.status(400).json({ message: "Patient ID (email/QR code/ID) and Provider ID are required" });
     }
 
@@ -122,19 +125,19 @@ export const createAccessRequest = async (req, res) => {
 
     let provider;
     try {
-      provider = await User.findById(providerId);
+      provider = await User.findById(requesterProviderId);
     } catch (e) {
-      console.log('Invalid provider ID:', providerId, e.message);
+      console.log('Invalid provider ID:', requesterProviderId, e.message);
       return res.status(400).json({ message: "Invalid provider ID format" });
     }
 
     if (!provider) {
-      console.log('Provider not found:', providerId);
+      console.log('Provider not found:', requesterProviderId);
       return res.status(400).json({ message: "Provider not found" });
     }
 
     if (provider.role !== 'PROVIDER') {
-      console.log('User is not a provider:', providerId, provider.role);
+      console.log('User is not a provider:', requesterProviderId, provider.role);
       return res.status(400).json({ message: "Requester must be a provider" });
     }
 
@@ -183,8 +186,7 @@ export const createAccessRequest = async (req, res) => {
     console.error('Create access request error:', err);
     res.status(500).json({
       message: "Failed to create access request",
-      error: err.message,
-      details: err.stack
+      error: err.message
     });
   }
 };

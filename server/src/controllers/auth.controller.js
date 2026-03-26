@@ -1,11 +1,17 @@
 import User from "../models/User.js";
 
+const frontendOrigin =
+  (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)[0] || "http://localhost:5173";
+
 export const googleAuthSuccess = async (req, res) => {
   if (!req.user) {
-    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/?error=authentication_failed`);
+    return res.redirect(`${frontendOrigin}/?error=authentication_failed`);
   }
 
-  res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/role-selection?auth=success`);
+  res.redirect(`${frontendOrigin}/role-selection?auth=success`);
 };
 
 export const assignRole = async (req, res) => {
@@ -57,6 +63,7 @@ export const getProfile = (req, res) => {
   if (!req.user) {
     return res.status(401).json({ message: "Not authenticated" });
   }
+
   res.status(200).json({
     id: req.user._id,
     name: req.user.name,
@@ -65,6 +72,10 @@ export const getProfile = (req, res) => {
     role: req.user.role || null,
     organization: req.user.organization,
     qr_code_id: req.user.qr_code_id,
+    emergency: req.user.emergency,
+    consent: req.user.consent,
+    medical_history: req.user.medical_history,
+    prescriptions: req.user.prescriptions,
   });
 };
 

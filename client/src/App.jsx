@@ -1,110 +1,136 @@
-import { useState, useEffect, useRef } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
-import './App.css';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { authService } from './services/api';
+import { useToast } from './context/useToast';
+import Navigation from './components/Navigation';
+
+// Page imports (We'll stub them or implement them shortly)
 import LoginPage from './pages/LoginPage';
 import RoleSelection from './pages/RoleSelection';
-import PatientDashboard from './pages/PatientDashboard';
-import ProviderDashboard from './pages/ProviderDashboard';
 import ProfilePage from './pages/ProfilePage';
-import Navigation from './components/Navigation';
-import { ToastProvider, useToast } from './context/ToastContext';
-import ToastContainer from './components/ToastContainer';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Patient Pages
+import PatientDashboard from './pages/PatientDashboard';
+import PatientHome from './pages/PatientHome';
+import PatientProfile from './pages/PatientProfile';
+import ConsentManagement from './pages/ConsentManagement';
+import AccessLogs from './pages/AccessLogs';
 
-function AppContent() {
+// Provider Pages
+import ProviderDashboard from './pages/ProviderDashboard';
+import ProviderHome from './pages/ProviderHome';
+import QRScanner from './pages/QRScanner';
+import AccessRequests from './pages/AccessRequests';
+import ConsentedPatients from './pages/ConsentedPatients';
+
+function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
-  const loginToastShownRef = useRef(false);
+  const authSuccessHandledRef = useRef(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { showSuccess } = useToast();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (location.search.includes('auth=success') && !loginToastShownRef.current) {
-      setAuthChecked(false);
-      setTimeout(() => {
-        checkAuth(true);
-      }, 500);
-    }
-  }, [location.search]);
-
-  const checkAuth = async (isLoginSuccess = false) => {
+  const checkAuth = useCallback(async (isSuccessCallback = false) => {
     try {
-      const response = await axios.get(`${API_URL}/auth/profile`, {
-        withCredentials: true,
-      });
-      const userData = response.data;
+      setLoading(true);
+      const data = await authService.getProfile();
+      setUser(data?.user ?? data ?? null);
       
-      // Show login success toast when auth=success parameter is present
-      if (isLoginSuccess && userData && !loginToastShownRef.current) {
-        showSuccess('Login successful!');
-        loginToastShownRef.current = true;
+      if (isSuccessCallback) {
+        showSuccess('Successfully authenticated');
       }
-      
-      setUser(userData);
-      setAuthChecked(true);
-    } catch (error) {
+    } catch {
       setUser(null);
-      setAuthChecked(true);
     } finally {
       setLoading(false);
+      setAuthChecked(true);
     }
-  };
+  }, [showSuccess]);
 
-  const handleLogout = () => {
-    setUser(null);
-  };
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const authStatus = params.get('auth');
+    
+    if (authStatus === 'success' && !authSuccessHandledRef.current) {
+      authSuccessHandledRef.current = true;
+      setAuthChecked(true);
+      checkAuth(true);
+      // Clean up URL
+      navigate('/role-selection', { replace: true });
+    } else if (!authChecked) {
+      checkAuth();
+    }
+  }, [location, authChecked, navigate, checkAuth]);
 
-  const updateUser = (userData) => {
-    setUser(userData);
-  };
-
-  if (loading || !authChecked) {
-    return <div className="loading">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="page-wrapper flex-center">
+        <div className="loader"></div>
+      </div>
+    );
   }
 
   return (
     <>
-      {user && <Navigation user={user} onLogout={handleLogout} />}
-      <ToastContainer />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/role-selection"
-          element={user ? (user.role ? <Navigate to={user.role === 'PATIENT' ? '/patient' : '/provider'} /> : <RoleSelection user={user} updateUser={updateUser} />) : <Navigate to="/login" />}
-        />
-        <Route
-          path="/profile"
-          element={user ? <ProfilePage user={user} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/patient/*"
-          element={user ? <PatientDashboard user={user} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/provider/*"
-          element={user ? <ProviderDashboard user={user} /> : <Navigate to="/login" />}
-        />
-        <Route path="/" element={<Navigate to={user ? (user.role ? (user.role === 'PATIENT' ? '/patient' : '/provider') : '/role-selection') : '/login'} />} />
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </>
-  );
-}
+      <Navigation user={user} setUser={setUser} />
+      
+      <main className={`page-wrapper animate-fade-in ${!user ? 'page-wrapper-public' : ''}`}>
+        <Routes>
+          {/* Public Route */}
+          <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" replace />} />
+          
+          {/* Role Selection Route */}
+          <Route path="/role-selection" element={
+            user ? (
+              !user.role ? <RoleSelection user={user} setUser={setUser} /> : <Navigate to="/" replace />
+            ) : <Navigate to="/login" replace />
+          } />
 
-function App() {
-  return (
-    <BrowserRouter>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
-    </BrowserRouter>
+          {/* Protected Routes Wrapper */}
+          {user ? (
+            <>
+              {/* Profile Route */}
+              <Route path="/profile" element={<ProfilePage user={user} setUser={setUser} />} />
+
+              {/* Patient Routes */}
+              <Route path="/patient" element={
+                user.role === 'PATIENT' ? <PatientDashboard /> : <Navigate to="/" replace />
+              }>
+                <Route index element={<PatientHome />} />
+                <Route path="profile" element={<PatientProfile />} />
+                <Route path="consent" element={<ConsentManagement />} />
+                <Route path="logs" element={<AccessLogs />} />
+              </Route>
+
+              {/* Provider Routes */}
+              <Route path="/provider" element={
+                user.role === 'PROVIDER' ? <ProviderDashboard /> : <Navigate to="/" replace />
+              }>
+                <Route index element={<ProviderHome />} />
+                <Route path="scan" element={<QRScanner />} />
+                <Route path="requests" element={<AccessRequests />} />
+                <Route path="patients" element={<ConsentedPatients />} />
+              </Route>
+
+              {/* Root Redirect Logic */}
+              <Route path="/" element={
+                !user.role ? <Navigate to="/role-selection" replace /> :
+                user.role === 'PATIENT' ? <Navigate to="/patient" replace /> :
+                user.role === 'PROVIDER' ? <Navigate to="/provider" replace /> :
+                <Navigate to="/login" replace />
+              } />
+            </>
+          ) : (
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          )}
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+    </>
   );
 }
 

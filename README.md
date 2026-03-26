@@ -69,5 +69,40 @@ GOOGLE_CALL_BACKURL=...
 # DB
 DB_URL=mongodb://127.0.0.1:27017/healthpassport
 
-# Client origin used by CORS
+# Client origins used by CORS/session redirects
 FRONTEND_URL=http://localhost:5173
+# Optional comma-separated list for multi-environment deploys
+# FRONTEND_URLS=https://health-passport.vercel.app,https://health-passport-git-main.vercel.app
+```
+
+## Monorepo Scripts
+
+From the repository root:
+
+```bash
+npm install
+npm run dev
+```
+
+Available root scripts:
+- `npm run dev` - runs frontend + backend concurrently
+- `npm run dev:client` - runs only Vite frontend
+- `npm run dev:server` - runs only Express backend
+- `npm run build` - builds frontend for production
+- `npm run lint` - runs frontend lint checks
+- `npm run start` - starts backend in production mode
+
+## Deployment
+
+### Vercel (Frontend)
+- Use the root repo with provided `vercel.json`
+- Build command: `npm run build --workspace client`
+- Output directory: `client/dist`
+- Set `VITE_API_URL` to your Render backend URL
+
+### Render (Backend)
+- Use the provided `render.yaml` or equivalent dashboard settings
+- Build command: `npm install`
+- Start command: `npm run start --workspace server`
+- Set required environment variables from the section above
+- In production, set `FRONTEND_URLS` to include your Vercel domain(s)

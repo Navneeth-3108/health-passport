@@ -1,284 +1,204 @@
-import { useState } from 'react';
-import { patientService } from '../services/api';
-import { useToast } from '../context/ToastContext';
-import './PatientProfile.css';
+import { useState, useEffect } from 'react';
+import { patientService, authService } from '../services/api';
+import { useToast } from '../context/useToast';
+import { Activity, ShieldCheck, Save, Plus, X } from 'lucide-react';
 
-function PatientProfile() {
-  const [emergency, setEmergency] = useState({
+const PatientProfile = () => {
+  const [emergencyData, setEmergencyData] = useState({
     blood_group: '',
     allergies: [],
     current_medications: []
   });
-  const [preferences, setPreferences] = useState({
+  const [consentData, setConsentData] = useState({
     medical_history: false,
     prescriptions: false,
-    allergies: false,
-    current_medications: false
+    allergies: true,
+    current_medications: true
   });
-  const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('emergency');
+  
+  const [newAllergy, setNewAllergy] = useState('');
+  const [newMed, setNewMed] = useState('');
+  const [savingSection, setSavingSection] = useState(null);
+  
   const { showSuccess, showError } = useToast();
 
-  const handleEmergencyChange = (field, value) => {
-    setEmergency(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  useEffect(() => {
+    authService
+      .getProfile()
+      .then((u) => {
+        if (u?.emergency) setEmergencyData(u.emergency);
+        if (u?.consent) setConsentData(u.consent);
+      })
+      .catch(() => {
+        showError('Failed to load profile data');
+      });
+  }, [showError]);
 
-  const handlePreferencesChange = (field) => {
-    setPreferences(prev => ({
-      ...prev,
-      [field]: !prev[field]
-    }));
-  };
-
-  const handleAddItem = (field) => {
-    const value = document.getElementById(`${field}-input`).value.trim();
-    if (value) {
-      setEmergency(prev => ({
-        ...prev,
-        [field]: [...prev[field], value]
-      }));
-      document.getElementById(`${field}-input`).value = '';
+  const saveEmergency = async () => {
+    setSavingSection('emergency');
+    try {
+      await patientService.updateEmergency(emergencyData);
+      showSuccess('Emergency summary updated');
+    } catch {
+      showError('Failed to update emergency info');
+    } finally {
+      setSavingSection(null);
     }
   };
 
-  const handleRemoveItem = (field, index) => {
-    setEmergency(prev => ({
+  const saveConsent = async () => {
+    setSavingSection('consent');
+    try {
+      await patientService.updateConsent(consentData);
+      showSuccess('Consent preferences updated');
+    } catch {
+      showError('Failed to update preferences');
+    } finally {
+      setSavingSection(null);
+    }
+  };
+
+  const addArrayItem = (field, value, setter) => {
+    if (!value.trim()) return;
+    setEmergencyData(prev => ({
+      ...prev,
+      [field]: [...prev[field], value.trim()]
+    }));
+    setter('');
+  };
+
+  const removeArrayItem = (field, index) => {
+    setEmergencyData(prev => ({
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index)
     }));
   };
 
-  const handleSaveEmergency = async () => {
-    setLoading(true);
-    try {
-      await patientService.updateEmergency(emergency);
-      showSuccess('Emergency information saved successfully!');
-    } catch (err) {
-      showError(err.response?.data?.message || 'Failed to save emergency information');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSavePreferences = async () => {
-    setLoading(true);
-    try {
-      await patientService.updateConsent(preferences);
-      showSuccess('Data sharing preferences saved successfully!');
-    } catch (err) {
-      showError(err.response?.data?.message || 'Failed to save preferences');
-    } finally {
-      setLoading(false);
-    }
+  const toggleConsent = (key) => {
+    setConsentData(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
-    <div className="patient-profile">
-      <h1>My Medical Information</h1>
-
-      <div className="tabs">
-        <button
-          className={`tab-btn ${activeTab === 'emergency' ? 'active' : ''}`}
-          onClick={() => setActiveTab('emergency')}
-        >
-          Emergency Summary
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'preferences' ? 'active' : ''}`}
-          onClick={() => setActiveTab('preferences')}
-        >
-          Data Sharing Preferences
-        </button>
+    <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gap: '32px' }}>
+      
+      <div style={{ marginBottom: '16px' }}>
+        <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '8px' }}>Medical Information</h1>
+        <p style={{ color: 'var(--text-muted)' }}>Manage your emergency snapshot and default privacy preferences.</p>
       </div>
 
-      {activeTab === 'emergency' && (
-        <div className="tab-content">
-          <div className="card">
-            <h2>Emergency Health Summary</h2>
-            <p className="help-text">
-              This information will be visible to healthcare providers during emergency situations.
-            </p>
+      <div className="glass-panel" style={{ padding: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          <Activity className="text-primary-accent" size={24} />
+          <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Emergency Summary</h2>
+        </div>
+        
+        <div className="form-group">
+          <label className="form-label">Blood Group</label>
+          <select 
+            className="form-input" 
+            value={emergencyData.blood_group || ''}
+            onChange={(e) => setEmergencyData({...emergencyData, blood_group: e.target.value})}
+            style={{ width: '200px' }}
+          >
+            <option value="">Select Group</option>
+            {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+              <option key={bg} value={bg}>{bg}</option>
+            ))}
+          </select>
+        </div>
 
-            <div className="form-group">
-              <label htmlFor="blood-group">Blood Group</label>
-              <select
-                id="blood-group"
-                value={emergency.blood_group}
-                onChange={(e) => handleEmergencyChange('blood_group', e.target.value)}
-                className="form-input"
-              >
-                <option value="">Select Blood Group</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-              </select>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          {/* Allergies */}
+          <div>
+            <label className="form-label">Allergies</label>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <input 
+                className="form-input" 
+                placeholder="e.g. Penicillin" 
+                value={newAllergy}
+                onChange={e => setNewAllergy(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addArrayItem('allergies', newAllergy, setNewAllergy)}
+              />
+              <button className="btn btn-secondary" onClick={() => addArrayItem('allergies', newAllergy, setNewAllergy)} style={{ padding: '0 16px' }}><Plus size={20}/></button>
             </div>
-
-            <div className="form-group">
-              <label>Allergies</label>
-              <div className="list-input">
-                <input
-                  id="allergies-input"
-                  type="text"
-                  placeholder="Enter allergy and press Add"
-                  className="form-input"
-                />
-                <button
-                  type="button"
-                  className="button button-secondary"
-                  onClick={() => handleAddItem('allergies')}
-                >
-                  Add
-                </button>
-              </div>
-              <div className="items-list">
-                {emergency.allergies.map((item, index) => (
-                  <span key={index} className="item-tag">
-                    {item}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveItem('allergies', index)}
-                      className="remove-item"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {emergencyData.allergies?.map((al, i) => (
+                <div key={i} className="badge badge-warning" style={{ display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'none' }}>
+                  {al} <X size={14} style={{ cursor: 'pointer' }} onClick={() => removeArrayItem('allergies', i)} />
+                </div>
+              ))}
             </div>
+          </div>
 
-            <div className="form-group">
-              <label>Current Medications</label>
-              <div className="list-input">
-                <input
-                  id="current_medications-input"
-                  type="text"
-                  placeholder="Enter medication and press Add"
-                  className="form-input"
-                />
-                <button
-                  type="button"
-                  className="button button-secondary"
-                  onClick={() => handleAddItem('current_medications')}
-                >
-                  Add
-                </button>
-              </div>
-              <div className="items-list">
-                {emergency.current_medications.map((item, index) => (
-                  <span key={index} className="item-tag">
-                    {item}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveItem('current_medications', index)}
-                      className="remove-item"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
+          {/* Medications */}
+          <div>
+            <label className="form-label">Current Medications</label>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <input 
+                className="form-input" 
+                placeholder="e.g. Lisinopril 10mg" 
+                value={newMed}
+                onChange={e => setNewMed(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addArrayItem('current_medications', newMed, setNewMed)}
+              />
+              <button className="btn btn-secondary" onClick={() => addArrayItem('current_medications', newMed, setNewMed)} style={{ padding: '0 16px' }}><Plus size={20}/></button>
             </div>
-
-            <button
-              className="button button-primary"
-              onClick={handleSaveEmergency}
-              disabled={loading}
-            >
-              {loading ? 'Saving...' : 'Save Emergency Information'}
-            </button>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {emergencyData.current_medications?.map((med, i) => (
+                <div key={i} className="badge badge-info" style={{ display: 'flex', alignItems: 'center', gap: '4px', textTransform: 'none' }}>
+                  {med} <X size={14} style={{ cursor: 'pointer' }} onClick={() => removeArrayItem('current_medications', i)} />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      )}
 
-      {activeTab === 'preferences' && (
-        <div className="tab-content">
-          <div className="card">
-            <h2>Data Sharing Preferences</h2>
-            <p className="help-text">
-              Choose which types of medical data you're willing to share with healthcare providers by default.
-            </p>
-
-            <div className="preference-item">
-              <div className="preference-info">
-                <h3>Medical History</h3>
-                <p>Allow access to your past medical conditions, treatments, and hospitalizations</p>
-              </div>
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={preferences.medical_history}
-                  onChange={() => handlePreferencesChange('medical_history')}
-                />
-                <span className="checkmark"></span>
-              </label>
-            </div>
-
-            <div className="preference-item">
-              <div className="preference-info">
-                <h3>Prescriptions</h3>
-                <p>Allow access to your current and past prescriptions</p>
-              </div>
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={preferences.prescriptions}
-                  onChange={() => handlePreferencesChange('prescriptions')}
-                />
-                <span className="checkmark"></span>
-              </label>
-            </div>
-
-            <div className="preference-item">
-              <div className="preference-info">
-                <h3>Allergies</h3>
-                <p>Allow access to your allergy information</p>
-              </div>
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={preferences.allergies}
-                  onChange={() => handlePreferencesChange('allergies')}
-                />
-                <span className="checkmark"></span>
-              </label>
-            </div>
-
-            <div className="preference-item">
-              <div className="preference-info">
-                <h3>Current Medications</h3>
-                <p>Allow access to your current medications and their details</p>
-              </div>
-              <label className="checkbox">
-                <input
-                  type="checkbox"
-                  checked={preferences.current_medications}
-                  onChange={() => handlePreferencesChange('current_medications')}
-                />
-                <span className="checkmark"></span>
-              </label>
-            </div>
-
-            <button
-              className="button button-primary"
-              onClick={handleSavePreferences}
-              disabled={loading}
-            >
-              {loading ? 'Saving...' : 'Save Preferences'}
-            </button>
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>
+          <button className="btn btn-primary" onClick={saveEmergency} disabled={savingSection === 'emergency'}>
+            <Save size={18} /> {savingSection === 'emergency' ? 'Saving...' : 'Save Emergency Info'}
+          </button>
         </div>
-      )}
+      </div>
+
+      <div className="glass-panel" style={{ padding: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          <ShieldCheck className="text-primary-accent" size={24} />
+          <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Default Consent Preferences</h2>
+        </div>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
+          These settings control whether emergency scans automatically include these data categories without a formal access request.
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {[
+            { key: 'medical_history', label: 'Full Medical History' },
+            { key: 'prescriptions', label: 'Past Prescriptions' },
+            { key: 'allergies', label: 'Allergies' },
+            { key: 'current_medications', label: 'Current Medications' }
+          ].map(field => (
+            <div key={field.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <span style={{ fontWeight: '500' }}>{field.label}</span>
+              <label className="toggle-switch">
+                <input 
+                  type="checkbox" 
+                  checked={consentData[field.key] || false} 
+                  onChange={() => toggleConsent(field.key)} 
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>
+          <button className="btn btn-primary" onClick={saveConsent} disabled={savingSection === 'consent'}>
+            <Save size={18} /> {savingSection === 'consent' ? 'Saving...' : 'Save Privacy Settings'}
+          </button>
+        </div>
+      </div>
+
     </div>
   );
-}
+};
 
 export default PatientProfile;

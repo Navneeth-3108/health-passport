@@ -1,106 +1,98 @@
-import { useState, useEffect } from 'react';
-import { patientService } from '../services/api';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useToast } from '../context/ToastContext';
-import './PatientHome.css';
+import { Download, AlertCircle } from 'lucide-react';
+import { patientService } from '../services/api';
+import { useToast } from '../context/useToast';
 
-function PatientHome({ user }) {
-  const [qrCode, setQrCode] = useState(null);
+const PatientHome = () => {
+  const [qrCodeId, setQrCodeId] = useState('');
   const [loading, setLoading] = useState(true);
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
+  const qrRef = useRef();
 
-  useEffect(() => {
-    fetchQRCode();
-  }, []);
-
-  const fetchQRCode = async () => {
+  const loadQR = useCallback(async () => {
     try {
-      const response = await patientService.generateQR();
-      setQrCode(response.data);
-    } catch (err) {
-      showError(err.response?.data?.message || 'Failed to generate QR code');
+      const data = await patientService.generateQR();
+      setQrCodeId(data.qr_code_id);
+    } catch {
+      showError('Failed to load QR code');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
-  const downloadQR = () => {
-    const qrElement = document.querySelector('#qr-code svg');
-    if (!qrElement) return;
+  useEffect(() => {
+    loadQR();
+  }, [loadQR]);
 
-    const svgData = new XMLSerializer().serializeToString(qrElement);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+  const handleExport = () => {
+    const svg = qrRef.current.querySelector('svg');
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     const img = new Image();
-
+    
     img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      const url = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `health-passport-${user.id}.png`;
-      link.click();
+      // Add padding and white background
+      canvas.width = img.width + 40;
+      canvas.height = img.height + 40;
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 20, 20);
+      
+      const pngFile = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
+      downloadLink.download = `HealthPassport-${qrCodeId.substring(0, 8)}.png`;
+      downloadLink.href = `${pngFile}`;
+      downloadLink.click();
+      showSuccess('QR code exported successfully');
     };
-
-    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    
+    img.src = "data:image/svg+xml;base64," + btoa(svgData);
   };
+
+  if (loading) return <div className="flex-center" style={{ height: '300px' }}><div className="loader"></div></div>;
 
   return (
-    <div className="patient-home">
-      <div className="welcome-card">
-        <h1>Welcome, {user.name}!</h1>
-        <p>Your Health Passport is your personal health data management system.</p>
-      </div>
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '8px' }}>Your Health Passport</h1>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>Present this QR code to authorized healthcare providers.</p>
+      
+      <div className="glass-panel" style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 1fr', gap: '32px', padding: '32px', alignItems: 'center' }}>
+        
+        {/* QR Core Container */}
+        <div className="flex-center" style={{ flexDirection: 'column', padding: '32px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div ref={qrRef} style={{ background: 'white', padding: '16px', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+            <QRCodeSVG value={qrCodeId} size={220} level={"H"} />
+          </div>
+          <div style={{ marginTop: '16px', fontFamily: 'monospace', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+            ID: {qrCodeId}
+          </div>
+        </div>
 
-      <div className="home-grid">
-        <div className="card">
-          <h2>Your QR Code</h2>
-          <p>Share this QR code with healthcare providers to allow them to request access to your medical records.</p>
+        {/* Action Panel */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div>
+            <h3 style={{ marginBottom: '8px' }}>Quick Actions</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '16px' }}>Save your QR to your device or print it for offline emergencies.</p>
+            <button className="btn btn-primary" onClick={handleExport} style={{ width: '100%' }}>
+              <Download size={18} /> Export as PNG
+            </button>
+          </div>
 
-          {loading ? (
-            <div className="loading-spinner">Generating QR Code...</div>
-          ) : qrCode ? (
-            <div className="qr-section">
-              <div id="qr-code" className="qr-container">
-                <QRCodeSVG
-                  value={qrCode.qr_code_id || user.id}
-                  size={200}
-                  level="H"
-                  includeMargin={true}
-                />
-              </div>
-              <p className="qr-id">ID: {qrCode.qr_code_id}</p>
-              <button className="button button-primary" onClick={downloadQR}>
-                Download QR Code
-              </button>
+          <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--info)', marginBottom: '8px', fontWeight: '600' }}>
+              <AlertCircle size={18} /> How it works
             </div>
-          ) : null}
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+              Scanning this code gives providers temporary access to your health records based on your consent preferences.
+            </p>
+          </div>
         </div>
 
-        <div className="card">
-          <h2>What You Can Do</h2>
-          <ul className="feature-list">
-            <li>📋 Store and manage your medical history</li>
-            <li>🏥 Grant secure access to healthcare providers</li>
-            <li>🆘 Create emergency health summary</li>
-            <li>📊 Track all access to your records</li>
-            <li>🚫 Revoke access anytime</li>
-            <li>🔐 Maintain complete privacy control</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="card info-card">
-        <h3>Privacy & Security</h3>
-        <p>
-          Your health data is encrypted and stored securely. You maintain complete control over who can access your medical information.
-          All access is logged and you can revoke permissions at any time.
-        </p>
       </div>
     </div>
   );
-}
+};
 
 export default PatientHome;

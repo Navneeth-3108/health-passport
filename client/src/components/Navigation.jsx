@@ -1,95 +1,86 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
-import { useToast } from '../context/ToastContext';
-import './Navigation.css';
+import { useToast } from '../context/useToast';
+import { Shield, Home, User, FileText, Activity, Scan, Users, LogOut } from 'lucide-react';
 
-function Navigation({ user, onLogout }) {
+const Navigation = ({ user, setUser }) => {
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
   const { showSuccess, showError } = useToast();
 
   const handleLogout = async () => {
     try {
       await authService.logout();
-      showSuccess('Logout successful!');
-      onLogout();
+      setUser(null);
+      showSuccess('Logged out successfully');
       navigate('/login');
-    } catch (err) {
-      console.error('Logout failed:', err);
-      showError('Logout failed. Please try again.');
+    } catch {
+      showError('Failed to logout');
+      setUser(null);
+      navigate('/login');
     }
   };
 
-  return (
-    <nav className="navbar">
-      <div className="nav-container">
-        <Link to="/" className="nav-brand">
-          🏥 Health Passport
-        </Link>
-
-        <button
-          className="mobile-menu-btn"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          ☰
-        </button>
-
-        <div className={`nav-menu ${mobileMenuOpen ? 'active' : ''}`}>
-          <div className="nav-left">
-            {user.role === 'PATIENT' && (
-              <>
-                <Link to="/patient" className="nav-link">Dashboard</Link>
-                <Link to="/patient/profile" className="nav-link">Medical Info</Link>
-                <Link to="/patient/consent" className="nav-link">Consent</Link>
-                <Link to="/patient/logs" className="nav-link">Access Logs</Link>
-              </>
-            )}
-
-            {user.role === 'PROVIDER' && (
-              <>
-                <Link to="/provider" className="nav-link">Dashboard</Link>
-                <Link to="/provider/scan" className="nav-link">Scan QR</Link>
-                <Link to="/provider/requests" className="nav-link">Requests</Link>
-                <Link to="/provider/patients" className="nav-link">Access Details</Link>
-              </>
-            )}
-          </div>
-
-          <div className="nav-right">
-            <div className="user-menu">
-              <button
-                className="user-btn"
-                onClick={() => setShowDropdown(!showDropdown)}
-              >
-                {user.picture ? (
-                  <img src={user.picture} alt={user.name} className="user-avatar-img" />
-                ) : (
-                  <span className="user-avatar">{user.name.charAt(0)}</span>
-                )}
-                <span className="user-name">{user.name}</span>
-                <span className="dropdown-icon">▼</span>
-              </button>
-
-              {showDropdown && (
-                <div className="dropdown-menu">
-                  <Link to="/profile" className="dropdown-item">Profile</Link>
-                  <hr className="dropdown-divider" />
-                  <button
-                    onClick={handleLogout}
-                    className="dropdown-item logout"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
+  const renderPatientLinks = () => (
+    <>
+      <NavLink to="/patient" end className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+        <span className="flex-center" style={{gap: '6px'}}><Home size={18}/> Dashboard</span>
+      </NavLink>
+      <NavLink to="/patient/profile" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+        <span className="flex-center" style={{gap: '6px'}}><Activity size={18}/> Medical Info</span>
+      </NavLink>
+      <NavLink to="/patient/consent" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+        <span className="flex-center" style={{gap: '6px'}}><FileText size={18}/> Consent</span>
+      </NavLink>
+      <NavLink to="/patient/logs" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+        <span className="flex-center" style={{gap: '6px'}}><Shield size={18}/> Access Logs</span>
+      </NavLink>
+    </>
   );
-}
+
+  const renderProviderLinks = () => (
+    <>
+      <NavLink to="/provider" end className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+        <span className="flex-center" style={{gap: '6px'}}><Home size={18}/> Dashboard</span>
+      </NavLink>
+      <NavLink to="/provider/scan" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+        <span className="flex-center" style={{gap: '6px'}}><Scan size={18}/> Scan QR</span>
+      </NavLink>
+      <NavLink to="/provider/requests" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+        <span className="flex-center" style={{gap: '6px'}}><FileText size={18}/> Requests</span>
+      </NavLink>
+      <NavLink to="/provider/patients" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+        <span className="flex-center" style={{gap: '6px'}}><Users size={18}/> Patients</span>
+      </NavLink>
+    </>
+  );
+
+  if (!user) return null;
+
+  return (
+    <header className="nav-header">
+      <div className="container nav-container">
+        <div className="nav-brand gradient-text">
+          <Shield className="text-primary-accent" size={28} />
+          Health Passport
+        </div>
+
+        <nav className="nav-links">
+          {user.role === 'PATIENT' && renderPatientLinks()}
+          {user.role === 'PROVIDER' && renderProviderLinks()}
+          
+          <div style={{width: '2px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 8px'}}></div>
+          
+          <NavLink to="/profile" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}>
+             <span className="flex-center" style={{gap: '6px'}}><User size={18}/> Profile</span>
+          </NavLink>
+          
+          <button onClick={handleLogout} className="btn btn-secondary flex-center" style={{padding: '6px 12px', gap: '6px', fontSize: '0.9rem'}}>
+            <LogOut size={16} /> Logout
+          </button>
+        </nav>
+      </div>
+    </header>
+  );
+};
 
 export default Navigation;

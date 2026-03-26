@@ -17,7 +17,9 @@ router.post("/assign-role",
   isAuthenticated,
   [
     body("role").isIn(["PATIENT", "PROVIDER"]).withMessage("Role must be PATIENT or PROVIDER"),
-    body("organization").optional().isString().withMessage("Organization must be a string")
+    body("organization")
+      .custom((value) => value === undefined || value === null || typeof value === "string")
+      .withMessage("Organization must be a string")
   ],
   validateRequest,
   assignRole

@@ -1,23 +1,13 @@
-import { Routes, Route, Link } from 'react-router-dom';
-import ProviderHome from './ProviderHome';
-import QRScanner from './QRScanner';
-import AccessRequests from './AccessRequests';
-import ConsentedPatients from './ConsentedPatients';
-import './ProviderDashboard.css';
+import { Outlet } from 'react-router-dom';
 
-function ProviderDashboard({ user }) {
+const ProviderDashboard = () => {
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-content">
-        <Routes>
-          <Route path="/" element={<ProviderHome user={user} />} />
-          <Route path="/scan" element={<QRScanner user={user} />} />
-          <Route path="/requests" element={<AccessRequests user={user} />} />
-          <Route path="/patients" element={<ConsentedPatients />} />
-        </Routes>
+    <div className="container" style={{ paddingTop: '24px' }}>
+      <div className="animate-fade-in">
+        <Outlet />
       </div>
     </div>
   );
-}
+};
 
 export default ProviderDashboard;
