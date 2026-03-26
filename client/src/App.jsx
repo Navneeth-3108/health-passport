@@ -89,15 +89,7 @@ function App() {
           return;
         }
 
-        const targetRoute = !resolvedUser?.role
-          ? '/role-selection'
-          : resolvedUser.role === 'PATIENT'
-            ? '/patient'
-            : resolvedUser.role === 'PROVIDER'
-              ? '/provider'
-              : '/role-selection';
-
-        navigate(targetRoute, { replace: true });
+        navigate('/role-selection', { replace: true, state: { hasRole: Boolean(resolvedUser?.role) } });
       });
       return;
     }

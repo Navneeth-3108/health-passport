@@ -1,15 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
 import { useToast } from '../context/useToast';
 import { User, Stethoscope, ArrowRight } from 'lucide-react';
 
-const RoleSelection = ({ setUser }) => {
+const RoleSelection = ({ user, setUser }) => {
   const [selectedRole, setSelectedRole] = useState(null);
   const [organization, setOrganization] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    if (user.role === 'PATIENT' || user.role === 'PROVIDER') {
+      setSelectedRole(user.role);
+    }
+
+    if (typeof user.organization === 'string') {
+      setOrganization(user.organization);
+    }
+  }, [user]);
 
   const handleRoleSelect = async () => {
     if (!selectedRole) return;
