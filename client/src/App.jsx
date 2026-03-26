@@ -23,6 +23,17 @@ import QRScanner from './pages/QRScanner';
 import AccessRequests from './pages/AccessRequests';
 import ConsentedPatients from './pages/ConsentedPatients';
 
+const isValidRole = (role) => role === 'PATIENT' || role === 'PROVIDER';
+
+const normalizeUserRole = (inputUser) => {
+  if (!inputUser) {
+    return null;
+  }
+
+  const normalizedRole = isValidRole(inputUser.role) ? inputUser.role : null;
+  return { ...inputUser, role: normalizedRole };
+};
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +50,7 @@ function App() {
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
           const data = await authService.getProfile();
-          const resolvedUser = data?.user ?? data ?? null;
+          const resolvedUser = normalizeUserRole(data?.user ?? data ?? null);
           setUser(resolvedUser);
 
           if (isSuccessCallback) {
@@ -82,7 +93,9 @@ function App() {
           ? '/role-selection'
           : resolvedUser.role === 'PATIENT'
             ? '/patient'
-            : '/provider';
+            : resolvedUser.role === 'PROVIDER'
+              ? '/provider'
+              : '/role-selection';
 
         navigate(targetRoute, { replace: true });
       });
@@ -129,7 +142,7 @@ function App() {
 
               {/* Patient Routes */}
               <Route path="/patient" element={
-                user.role === 'PATIENT' ? <PatientDashboard /> : <Navigate to="/" replace />
+                user.role === 'PATIENT' ? <PatientDashboard /> : <Navigate to="/role-selection" replace />
               }>
                 <Route index element={<PatientHome />} />
                 <Route path="profile" element={<PatientProfile />} />
@@ -139,7 +152,7 @@ function App() {
 
               {/* Provider Routes */}
               <Route path="/provider" element={
-                user.role === 'PROVIDER' ? <ProviderDashboard /> : <Navigate to="/" replace />
+                user.role === 'PROVIDER' ? <ProviderDashboard /> : <Navigate to="/role-selection" replace />
               }>
                 <Route index element={<ProviderHome />} />
                 <Route path="scan" element={<QRScanner />} />
@@ -152,7 +165,7 @@ function App() {
                 !user.role ? <Navigate to="/role-selection" replace /> :
                 user.role === 'PATIENT' ? <Navigate to="/patient" replace /> :
                 user.role === 'PROVIDER' ? <Navigate to="/provider" replace /> :
-                <Navigate to="/login" replace />
+                <Navigate to="/role-selection" replace />
               } />
             </>
           ) : (
