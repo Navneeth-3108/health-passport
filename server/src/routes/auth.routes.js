@@ -7,7 +7,13 @@ import { validateRequest } from "../middlewares/validate.middleware.js";
 
 const router = express.Router();
 
-router.get("/login", passport.authenticate("google", { scope: ["profile", "email"] }));
+router.get(
+  "/login",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt: "select_account"
+  })
+);
 
 router.get("/google/callback", passport.authenticate("google", { failureRedirect: "/" }), googleAuthSuccess );
 

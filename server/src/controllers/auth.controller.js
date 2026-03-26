@@ -83,8 +83,15 @@ export const logout = (req, res, next) => {
   req.logout(err => {
     if (err) return next(err);
 
+    const isProd = process.env.NODE_ENV === "production";
+
     req.session.destroy(() => {
-      res.clearCookie("connect.sid");
+      res.clearCookie("connect.sid", {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        path: "/",
+      });
       res.status(200).json({ message: "Logged out successfully" });
     });
   });

@@ -79,7 +79,7 @@ function App() {
       <main className={`page-wrapper animate-fade-in ${!user ? 'page-wrapper-public' : ''}`}>
         <Routes>
           {/* Public Route */}
-          <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" replace />} />
+          <Route path="/login" element={<LoginPage />} />
           
           {/* Role Selection Route */}
           <Route path="/role-selection" element={
