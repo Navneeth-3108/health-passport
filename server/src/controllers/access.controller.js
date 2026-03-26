@@ -89,34 +89,39 @@ export const scanQR = async (req, res) => {
 export const createAccessRequest = async (req, res) => {
   try {
     const { patientId, providerId, dataScope } = req.body;
-    const requesterProviderId = providerId || req.user?._id;
+    const requesterProviderId = req.user?._id || providerId;
+    const patientIdentifier = typeof patientId === 'string' ? patientId.trim() : patientId;
 
-    console.log('Create access request:', { patientId, providerId: requesterProviderId, dataScope });
+    const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-    if (!patientId || !requesterProviderId) {
+    console.log('Create access request:', { patientId: patientIdentifier, providerId: requesterProviderId, dataScope });
+
+    if (!patientIdentifier || !requesterProviderId) {
       return res.status(400).json({ message: "Patient ID (email/QR code/ID) and Provider ID are required" });
     }
 
 
     let patient;
     try {
-      patient = await User.findById(patientId);
+      patient = await User.findById(patientIdentifier);
     } catch (e) {
-      console.log('Invalid MongoDB ID format, trying email/QR:', patientId);
+      console.log('Invalid MongoDB ID format, trying email/QR:', patientIdentifier);
     }
 
     if (!patient) {
-      patient = await User.findOne({ email: patientId });
-      console.log('Searched by email:', patientId, patient ? 'found' : 'not found');
+      if (typeof patientIdentifier === 'string' && patientIdentifier.includes('@')) {
+        patient = await User.findOne({ email: new RegExp(`^${escapeRegex(patientIdentifier)}$`, 'i') });
+      }
+      console.log('Searched by email:', patientIdentifier, patient ? 'found' : 'not found');
     }
 
     if (!patient) {
-      patient = await User.findOne({ qr_code_id: patientId });
-      console.log('Searched by QR code:', patientId, patient ? 'found' : 'not found');
+      patient = await User.findOne({ qr_code_id: patientIdentifier });
+      console.log('Searched by QR code:', patientIdentifier, patient ? 'found' : 'not found');
     }
 
     if (!patient) {
-      console.log('Patient not found:', patientId);
+      console.log('Patient not found:', patientIdentifier);
       return res.status(404).json({ message: "Patient not found. Use patient ID, email, or QR code ID" });
     }
 
@@ -163,7 +168,7 @@ export const createAccessRequest = async (req, res) => {
     const consent = await Consent.create({
       patientId: patient._id,
       providerId: provider._id,
-      dataScope: dataScope && dataScope.length > 0 ? dataScope : ["medical_history", "prescriptions", "allergies", "current_medications"],
+      dataScope: dataScope && dataScope.length > 0 ? dataScope : ["medical_history", "prescriptions", "allergies", "current_medications", "blood_group"],
       status: "PENDING",
     });
 

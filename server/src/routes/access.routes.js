@@ -16,7 +16,7 @@ router.post("/scan",
   handleEmergency,
   [
     body("qr_code_id").notEmpty().withMessage("QR code ID is required"),
-    body("requestedBy").optional().isMongoId().withMessage("Valid requester ID is required"),
+    body("requestedBy").optional({ values: "falsy" }).isMongoId().withMessage("Valid requester ID is required"),
     body("emergency").optional().isBoolean().withMessage("Emergency must be a boolean")
   ],
   validateRequest,
@@ -26,7 +26,7 @@ router.post("/scan",
 router.post("/request",
   [
     body("patientId").notEmpty().withMessage("Patient ID (email, QR code, or MongoDB ID) is required"),
-    body("providerId").optional().isMongoId().withMessage("Valid provider ID is required"),
+    body("providerId").optional({ values: "falsy" }).isMongoId().withMessage("Valid provider ID is required"),
     body("dataScope").optional().isArray().withMessage("Data scope must be an array")
   ],
   validateRequest,
@@ -37,7 +37,7 @@ router.post("/emergency",
   handleEmergency,
   [
     body("qr_code_id").notEmpty().withMessage("QR code ID is required"),
-    body("requestedBy").optional().isMongoId().withMessage("Valid requester ID is required")
+    body("requestedBy").optional({ values: "falsy" }).isMongoId().withMessage("Valid requester ID is required")
   ],
   validateRequest,
   scanQR

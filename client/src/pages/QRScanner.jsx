@@ -50,7 +50,9 @@ const QRScanner = () => {
 
     try {
       setLoading(true);
-      const data = await accessService.scanQR(qrId, undefined, emergencyMode);
+      const data = emergencyMode
+        ? await accessService.emergencyAccess(qrId, undefined, 'Emergency medical access')
+        : await accessService.scanQR(qrId, undefined, false);
       setScannedData(data);
       showSuccess(`Successfully accessed records for ${data.patientName || 'patient'}`);
     } catch (err) {
@@ -63,6 +65,16 @@ const QRScanner = () => {
   const renderScannedData = () => {
     if (!scannedData) return null;
     const { patientName, patientId, emergency, data } = scannedData;
+    const displayData = emergency
+      ? {
+          blood_group: data?.blood_group ?? 'Not specified',
+          allergies: Array.isArray(data?.allergies) ? data.allergies : [],
+          current_medications: Array.isArray(data?.current_medications) ? data.current_medications : [],
+          medical_history: data?.medical_history || 'Not provided',
+          prescriptions: Array.isArray(data?.prescriptions) ? data.prescriptions : []
+        }
+      : (data || {});
+    const entries = Object.entries(displayData);
 
     return (
       <div className="glass-panel animate-fade-in" style={{ padding: '32px', marginTop: '32px' }}>
@@ -84,7 +96,7 @@ const QRScanner = () => {
         </div>
 
         <div className="responsive-two-col-tight" style={{ gap: '24px' }}>
-          {data && Object.entries(data).map(([key, value]) => {
+          {entries.map(([key, value]) => {
             // Render primitive or array naturally
             const isArray = Array.isArray(value);
             return (
@@ -106,6 +118,11 @@ const QRScanner = () => {
               </div>
             );
           })}
+          {entries.length === 0 && (
+            <div style={{ color: 'var(--text-muted)' }}>
+              No details available for this scan.
+            </div>
+          )}
         </div>
       </div>
     );

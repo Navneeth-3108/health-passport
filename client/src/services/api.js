@@ -39,7 +39,7 @@ export const consentService = {
 
 export const accessService = {
   scanQR: (qrCodeId, requestedBy, emergency = false) => api.post('/access/scan', { qr_code_id: qrCodeId, requestedBy, emergency }).then(res => res.data),
-  createAccessRequest: (patientId, providerId, dataScope) => api.post('/access/request', { patientId, providerId, dataScope }).then(res => res.data),
+  createAccessRequest: (patientId, dataScope) => api.post('/access/request', { patientId, dataScope }).then(res => res.data),
   emergencyAccess: (qrCodeId, accessedBy, reason) => api.post('/access/emergency', { qr_code_id: qrCodeId, requestedBy: accessedBy, emergency: true, reason }).then(res => res.data)
 };
 

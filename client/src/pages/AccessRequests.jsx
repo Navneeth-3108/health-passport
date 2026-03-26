@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { accessService, authService } from '../services/api';
+import { useState } from 'react';
+import { accessService } from '../services/api';
 import { useToast } from '../context/useToast';
 import { FileText, Send } from 'lucide-react';
 
@@ -7,21 +7,15 @@ const AccessRequests = () => {
   const [patientId, setPatientId] = useState('');
   const [dataScope, setDataScope] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [providerId, setProviderId] = useState(null);
   const { showSuccess, showError } = useToast();
 
   const scopes = [
     { id: 'medical_history', label: 'Full Medical History' },
     { id: 'prescriptions', label: 'Past Prescriptions' },
     { id: 'allergies', label: 'Allergies' },
+    { id: 'blood_group', label: 'Blood Group' },
     { id: 'current_medications', label: 'Current Medications' }
   ];
-
-  useEffect(() => {
-    authService.getProfile()
-      .then((res) => setProviderId(res?.id || res?._id || res?.user?.id || res?.user?._id || null))
-      .catch(console.error);
-  }, []);
 
   const toggleScope = (id) => {
     setDataScope(prev => 
@@ -42,7 +36,7 @@ const AccessRequests = () => {
 
     try {
       setLoading(true);
-      await accessService.createAccessRequest(patientId, providerId, dataScope);
+      await accessService.createAccessRequest(patientId, dataScope);
       showSuccess('Access request sent successfully');
       setPatientId('');
       setDataScope([]);
