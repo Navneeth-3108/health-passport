@@ -1,10 +1,23 @@
 import User from "../models/User.js";
 
-const frontendOrigin =
+const normalizeToOrigin = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return value.replace(/\/$/, "");
+  }
+};
+
+const frontendOrigin = normalizeToOrigin(
   (process.env.FRONTEND_URL || process.env.FRONTEND_URLS || "http://localhost:5173")
     .split(",")
     .map((origin) => origin.trim())
-    .filter(Boolean)[0] || "http://localhost:5173";
+    .filter(Boolean)[0]
+) || "http://localhost:5173";
 
 export const googleAuthSuccess = async (req, res) => {
   if (!req.user) {

@@ -19,9 +19,22 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const app = express();
 
+const normalizeToOrigin = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return value.replace(/\/$/, "");
+  }
+};
+
 const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:5173")
   .split(",")
   .map((origin) => origin.trim())
+  .map((origin) => normalizeToOrigin(origin))
   .filter(Boolean);
 
 const allowVercelPreviews = process.env.ALLOW_VERCEL_PREVIEWS !== "false";
