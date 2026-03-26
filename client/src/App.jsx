@@ -56,9 +56,9 @@ function App() {
     if (authStatus === 'success' && !authSuccessHandledRef.current) {
       authSuccessHandledRef.current = true;
       setAuthChecked(true);
-      checkAuth(true);
-      // Clean up URL
-      navigate('/role-selection', { replace: true });
+      checkAuth(true).finally(() => {
+        navigate(location.pathname, { replace: true });
+      });
     } else if (!authChecked) {
       checkAuth();
     }
