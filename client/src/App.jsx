@@ -39,14 +39,15 @@ function App() {
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
           const data = await authService.getProfile();
-          setUser(data?.user ?? data ?? null);
+          const resolvedUser = data?.user ?? data ?? null;
+          setUser(resolvedUser);
 
           if (isSuccessCallback) {
             showSuccess('Successfully authenticated');
           }
 
           setAuthChecked(true);
-          return true;
+          return { authenticated: true, user: resolvedUser };
         } catch {
           if (!(isSuccessCallback && attempt === 0)) {
             break;
@@ -59,7 +60,7 @@ function App() {
 
       setUser(null);
       setAuthChecked(true);
-      return false;
+      return { authenticated: false, user: null };
     } finally {
       setLoading(false);
     }
@@ -68,16 +69,33 @@ function App() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const authStatus = params.get('auth');
-    
+
     if (authStatus === 'success' && !authSuccessHandledRef.current) {
       authSuccessHandledRef.current = true;
-      checkAuth(true).finally(() => {
-        navigate(location.pathname, { replace: true });
+      checkAuth(true).then(({ authenticated, user: resolvedUser }) => {
+        if (!authenticated) {
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        const targetRoute = !resolvedUser?.role
+          ? '/role-selection'
+          : resolvedUser.role === 'PATIENT'
+            ? '/patient'
+            : '/provider';
+
+        navigate(targetRoute, { replace: true });
       });
+      return;
+    }
+
+    if (authStatus === 'success' && authSuccessHandledRef.current) {
+      navigate(location.pathname, { replace: true });
+      return;
     } else if (!authChecked) {
       checkAuth();
     }
-  }, [location, authChecked, navigate, checkAuth]);
+  }, [location.pathname, location.search, authChecked, navigate, checkAuth]);
 
   if (loading) {
     return (

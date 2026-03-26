@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 
 const frontendOrigin =
-  (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:5173")
+  (process.env.FRONTEND_URL || process.env.FRONTEND_URLS || "http://localhost:5173")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean)[0] || "http://localhost:5173";
@@ -11,7 +11,7 @@ export const googleAuthSuccess = async (req, res) => {
     return res.redirect(`${frontendOrigin}/?error=authentication_failed`);
   }
 
-  res.redirect(`${frontendOrigin}/role-selection?auth=success`);
+  res.redirect(`${frontendOrigin}/?auth=success`);
 };
 
 export const assignRole = async (req, res) => {

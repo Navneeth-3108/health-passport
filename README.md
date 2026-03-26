@@ -73,6 +73,8 @@ DB_URL=mongodb://127.0.0.1:27017/healthpassport
 FRONTEND_URL=http://localhost:5173
 # Optional comma-separated list for multi-environment deploys
 # FRONTEND_URLS=https://health-passport.vercel.app,https://health-passport-git-main.vercel.app
+# Optional: set to false to disable auto-allow of *.vercel.app preview domains
+# ALLOW_VERCEL_PREVIEWS=true
 ```
 
 ## Monorepo Scripts
@@ -96,8 +98,8 @@ Available root scripts:
 
 ### Vercel (Frontend)
 - Use the root repo with provided `vercel.json`
-- Build command: `npm run build --workspace client`
-- Output directory: `client/dist`
+- Build command: `npm run build`
+- Output directory: `dist`
 - Set `VITE_API_URL` to your Render backend URL
 
 ### Render (Backend)
@@ -105,4 +107,16 @@ Available root scripts:
 - Build command: `npm install`
 - Start command: `npm run start --workspace server`
 - Set required environment variables from the section above
-- In production, set `FRONTEND_URLS` to include your Vercel domain(s)
+- In production, set `FRONTEND_URL` to your primary Vercel domain
+- Optionally set `FRONTEND_URLS` for additional domains (custom domain, preview domain)
+
+## OAuth Redirect Loop Checklist
+
+If login succeeds in Google but you are redirected back to `/login`, verify all of these:
+
+- `GOOGLE_CALL_BACKURL` exactly matches your Render callback endpoint (example: `https://your-api.onrender.com/auth/google/callback`)
+- Google Cloud Console OAuth redirect URI exactly matches `GOOGLE_CALL_BACKURL`
+- `FRONTEND_URL` is your primary Vercel app URL (no trailing slash)
+- `FRONTEND_URLS` includes any additional Vercel/custom domains you actually use (comma-separated, no spaces)
+- `VITE_API_URL` points to your Render API origin (no trailing slash)
+- Browser test is done in a normal profile (not one blocking third-party cookies aggressively)
