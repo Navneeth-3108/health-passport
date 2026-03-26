@@ -43,6 +43,14 @@ function App() {
   const navigate = useNavigate();
   const { showSuccess } = useToast();
 
+  const consumeForceRoleSelection = useCallback(() => {
+    const force = sessionStorage.getItem('hp_force_role_selection') === '1';
+    if (force) {
+      sessionStorage.removeItem('hp_force_role_selection');
+    }
+    return force;
+  }, []);
+
   const checkAuth = useCallback(async (isSuccessCallback = false) => {
     setLoading(true);
 
@@ -101,6 +109,18 @@ function App() {
       checkAuth();
     }
   }, [location.pathname, location.search, authChecked, navigate, checkAuth]);
+
+  useEffect(() => {
+    if (!authChecked || !user) {
+      return;
+    }
+
+    const shouldForceRoleSelection = consumeForceRoleSelection();
+
+    if (shouldForceRoleSelection && location.pathname !== '/role-selection') {
+      navigate('/role-selection', { replace: true, state: { hasRole: Boolean(user?.role) } });
+    }
+  }, [authChecked, user, location.pathname, navigate, consumeForceRoleSelection]);
 
   if (loading) {
     return (

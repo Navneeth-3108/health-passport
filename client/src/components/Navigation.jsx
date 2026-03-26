@@ -10,11 +10,13 @@ const Navigation = ({ user, setUser }) => {
   const handleLogout = async () => {
     try {
       await authService.logout();
+      sessionStorage.removeItem('hp_force_role_selection');
       setUser(null);
       showSuccess('Logged out successfully');
       navigate('/login');
     } catch {
       showError('Failed to logout');
+      sessionStorage.removeItem('hp_force_role_selection');
       setUser(null);
       navigate('/login');
     }

@@ -3,6 +3,7 @@ import { Shield, Sparkles } from 'lucide-react';
 const LoginPage = () => {
   const handleLogin = () => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    sessionStorage.setItem('hp_force_role_selection', '1');
     window.location.href = `${apiUrl}/auth/login`;
   };
 
