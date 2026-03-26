@@ -11,8 +11,7 @@ export const googleAuthSuccess = async (req, res) => {
     return res.redirect(`${frontendOrigin}/?error=authentication_failed`);
   }
 
-  const redirectPath = req.user.role ? "/?auth=success" : "/role-selection?auth=success";
-  res.redirect(`${frontendOrigin}${redirectPath}`);
+  res.redirect(`${frontendOrigin}/role-selection?auth=success`);
 };
 
 export const assignRole = async (req, res) => {

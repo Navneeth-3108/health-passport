@@ -33,19 +33,35 @@ function App() {
   const { showSuccess } = useToast();
 
   const checkAuth = useCallback(async (isSuccessCallback = false) => {
+    setLoading(true);
+
     try {
-      setLoading(true);
-      const data = await authService.getProfile();
-      setUser(data?.user ?? data ?? null);
-      
-      if (isSuccessCallback) {
-        showSuccess('Successfully authenticated');
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const data = await authService.getProfile();
+          setUser(data?.user ?? data ?? null);
+
+          if (isSuccessCallback) {
+            showSuccess('Successfully authenticated');
+          }
+
+          setAuthChecked(true);
+          return true;
+        } catch {
+          if (!(isSuccessCallback && attempt === 0)) {
+            break;
+          }
+
+          // In cross-domain OAuth redirects, session cookie propagation can lag briefly.
+          await new Promise((resolve) => setTimeout(resolve, 400));
+        }
       }
-    } catch {
+
       setUser(null);
+      setAuthChecked(true);
+      return false;
     } finally {
       setLoading(false);
-      setAuthChecked(true);
     }
   }, [showSuccess]);
 
@@ -55,7 +71,6 @@ function App() {
     
     if (authStatus === 'success' && !authSuccessHandledRef.current) {
       authSuccessHandledRef.current = true;
-      setAuthChecked(true);
       checkAuth(true).finally(() => {
         navigate(location.pathname, { replace: true });
       });
@@ -84,7 +99,7 @@ function App() {
           {/* Role Selection Route */}
           <Route path="/role-selection" element={
             user ? (
-              !user.role ? <RoleSelection user={user} setUser={setUser} /> : <Navigate to="/" replace />
+              <RoleSelection user={user} setUser={setUser} />
             ) : <Navigate to="/login" replace />
           } />
 
